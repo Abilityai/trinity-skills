@@ -1,0 +1,152 @@
+---
+name: compose-system
+description: Turn fleet/system-map.yaml into a Trinity SystemManifest (fleet/system.yaml) — pick members, choose a permissions topology, validate with a dry-run deploy, and deploy_system on approval. Emits Trinity's native manifest format; no parallel schema.
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, mcp__trinity__deploy_system, mcp__trinity__list_systems, mcp__trinity__get_system_manifest, mcp__trinity__restart_system, mcp__trinity__list_templates
+user-invocable: true
+metadata:
+  version: "1.2"
+  created: 2026-07-01
+  author: orchestrator
+  changelog:
+    - "1.2: Derive agent_permissions from fleet/orchestration.md §5 (Permissions & boundaries) as the source of intent; fall back to the preset topology with a note when §5 is empty — closing the loop narrative → enforced permissions"
+    - "1.1: Front-load the two-mode distinction — this is the PROVISION path (stand up NEW agents); skip it for a fleet already on Trinity (the map + /orchestrate is enough). Guarded report swallows auth-scope failures"
+    - "1.0: Initial version — composes a Trinity SystemManifest from the system map, validates via dry_run, deploys on explicit approval, and always writes fleet/system.yaml for version control"
+---
+
+# Compose System
+
+> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — the top entry of `metadata.changelog` above — e.g. `compose-system vX.Y — recent: <summary>`. Then proceed.
+
+Take the descriptive `fleet/system-map.yaml` and produce a **prescriptive Trinity `SystemManifest`** at `fleet/system.yaml` — the exact YAML `deploy_system` consumes. Validate it with a dry-run, write it to the repo, and (only with explicit approval) deploy the whole multi-agent system in one shot.
+
+> ⚠️ **This is the PROVISION path — use it only to stand up NEW agents.** If your fleet already runs on Trinity, **skip this skill**: the descriptive `fleet/system-map.yaml` is what `/orchestrate` reads, and composing/deploying a manifest over agents that already exist risks duplicates or clobbering live config. Reach for `/compose-system` when you want to create agents that are currently only catalog repos (`deployed: false`), or replicate a system into a fresh instance.
+
+**This emits Trinity's native format.** The `agents` map, `template` refs, `folders`, `schedules`, `tags`, and `permissions` preset all match Trinity's `SystemManifest`. We do not invent fields.
+
+---
+
+## Process
+
+### Step 1: Load the map
+
+```bash
+[ -f fleet/system-map.yaml ] || { echo "No fleet/system-map.yaml — run /discover-agents first."; exit 1; }
+```
+
+Read it. If `agents:` is empty, tell the user to run `/discover-agents` and stop.
+
+### Step 2: Choose members and topology
+
+Use `AskUserQuestion`:
+
+**Q1 — Which agents to include as members?**
+- `Catalog-only (not yet deployed)` (recommended) — the `deployed: false` agents; this is the normal provisioning case
+- `All discovered` — every agent in the map. Only for replicating a whole system into a **fresh** instance; over your current instance this tries to re-create already-deployed agents (duplicates)
+- `Let me pick` — present the list, multi-select
+
+**First, read `fleet/orchestration.md` §5 (Permissions & boundaries).** That section is the authored *intent* for who-may-call-whom and is the **source** for the manifest's `agent_permissions`:
+- **§5 has authored intent** → derive `agent_permissions` from it (translate its allow/deny statements into the explicit permissions map) and just confirm with the user — don't ask Q2 from scratch.
+- **§5 is empty** (freshly scaffolded) → ask Q2 below, and emit a note: *"No permission intent authored in orchestration.md §5 — using the `<preset>` topology. Document intended edges there and re-run for least-privilege."*
+
+**Q2 — Permissions topology** (Trinity presets — used when §5 is empty):
+- `orchestrator-workers` (recommended) — **this** agent is the orchestrator; every other member is a worker it may call. Restrictive and matches this skill's intent.
+- `full-mesh` — every agent may call every other. Use for peer collaboration.
+- `none` — no agent-to-agent calls; isolated members.
+- `custom` — an explicit map, e.g. `{this-agent: [worker-a, worker-b]}`.
+
+**Q3 — System-wide prompt?** (optional, free text) — one instruction injected into every member agent (Trinity's `prompt` field). Leave empty for none.
+
+**Q4 — Shared folders?** (optional) — if members pass files, mark which `expose` (publisher) and which `consume`. Default: none (all `expose:false, consume:false`).
+
+### Step 3: Resolve `template` refs
+
+Each member needs a Trinity `template` ref. Resolve from the map's `source`/`ref`:
+
+| Map entry | `template:` in manifest |
+|---|---|
+| `source: github:Org/repo` | `github:Org/repo` |
+| `deployed: true` but local source | needs a registered Trinity template — check `mcp__trinity__list_templates`; if present use `local:<template-name>`, else flag |
+| local source, not deployed, no template | **cannot deploy via manifest** — flag it: onboard it first (`/trinity:onboard` in that repo) or deploy via `deploy_local_agent`; still list it in `fleet/system.yaml` with a `# NEEDS-TEMPLATE` comment |
+
+Don't drop un-deployable members silently — include them commented/flagged so the manifest is a complete picture, and list them in the Step 6 report.
+
+### Step 4: Build the manifest
+
+Assemble `fleet/system.yaml` in Trinity `SystemManifest` shape:
+
+```yaml
+name: <system_name from map, or "<agent>-fleet">
+description: "<one line describing this system>"
+prompt: "<from Q3, or omit>"
+
+agents:
+  prospector:
+    template: github:your-org/prospector
+    resources: {cpu: "2", memory: "4g"}     # from map; omit to use template defaults
+    folders: {expose: false, consume: false}
+    schedules:                               # carried over from the map (enabled as declared)
+      - {name: weekly-account-refresh, cron: "0 8 * * 1", skill: refresh-accounts, enabled: false}
+    tags: [sales, research]
+  # … one entry per member …
+
+permissions:
+  preset: orchestrator-workers               # this agent orchestrates; others are workers
+  # or, for custom:  map: {<this-agent>: [worker-a, worker-b]}
+
+default_tags: [<system_name>]                # optional
+# system_view:                               # optional pre-built dashboard view
+#   name: <system_name>
+```
+
+Notes:
+- Carry `resources`, `schedules`, `tags` straight from the map. Keep schedule `enabled` flags as declared (Trinity's declarative-schedules rule — the operator toggles them live).
+- For `orchestrator-workers`, the orchestrator identity is **this** agent (its Trinity name). State that explicitly in the manifest comment.
+- `permissions` are derived from `orchestration.md` §5 when it's authored (Step 2); otherwise the chosen preset. Never grant an edge in the manifest that §5 doesn't sanction.
+
+### Step 5: Validate (dry-run) and write
+
+Always write `fleet/system.yaml` to the repo first (so it's version-controlled even if we don't deploy).
+
+If Trinity MCP is available, validate before deploying:
+
+```
+mcp__trinity__deploy_system with the manifest YAML and dry_run: true
+```
+
+Surface every warning it returns (unknown template, name collision, permission gaps). If MCP is unavailable, say so — the manifest is still written and valid to deploy later.
+
+### Step 6: Deploy (explicit approval only)
+
+Deploying creates/starts real agents and is outward-facing and not trivially reversible. **Show the dry-run result and the member list, then ask for explicit confirmation.** Only on a clear yes:
+
+```
+mcp__trinity__deploy_system with the manifest YAML (dry_run: false)
+```
+
+If a system with this `name` already exists (`mcp__trinity__list_systems`), tell the user and offer: `restart_system` to apply changes, deploy under a new name, or cancel. Do not blindly redeploy over a running system.
+
+### Step 7: Report
+
+```
+Composed fleet/system.yaml — <N> members, permissions: <preset>
+  deployable now:   <list>
+  needs template:   <flagged members, if any>
+Dry-run: <clean | warnings: …>
+Deployed: <yes → system '<name>' | no — manifest written only>
+
+Next: /orchestrate <task>  to put the system to work.
+```
+
+Publish a guarded Trinity report (`report_type: <agent>.system_composed`, `display_hint: markdown`). Guard against **both** tool-absence **and** an auth-scope error (the report tool needs an agent-scoped key, not an admin/user MCP key) — swallow either and continue.
+
+---
+
+## Error handling
+
+| Situation | Action |
+|---|---|
+| No/empty `fleet/system-map.yaml` | Send user to `/discover-agents`; stop |
+| Member has no resolvable `template` | Include flagged with `# NEEDS-TEMPLATE`; explain onboarding path; don't block the others |
+| `dry_run` returns warnings | Print them all; ask before real deploy |
+| System name already exists | Offer restart / new-name / cancel — never silent overwrite |
+| Trinity MCP absent | Write `fleet/system.yaml` anyway; skip validate/deploy; note how to deploy after `/trinity:connect` |

@@ -53,8 +53,20 @@ ENV_IGNORE = {
     "EDITOR", "IFS", "HOSTNAME", "COLUMNS", "LINES", "RANDOM", "SECONDS",
     "FUNCNAME", "LINENO", "EUID", "UID", "CI", "GITHUB_OUTPUT", "GITHUB_ENV",
     "GITHUB_ACTIONS", "PYTHONPATH", "NODE_ENV", "ARGUMENTS",
-    "CLAUDE_SESSION_ID", "CLAUDE_SKILL_DIR", "EFFORT_LEVEL",
+    "CLAUDE_SESSION_ID", "CLAUDE_SKILL_DIR", "CLAUDE_PROJECT_DIR",
+    "CLAUDE_PLUGIN_ROOT", "CLAUDE_EFFORT", "EFFORT_LEVEL",
 }
+
+# The undeclared-reference gate is strict only for names that look like
+# credentials/config a skill would genuinely read from its environment.
+# Everything else (e.g. $TITLE, $SLUG placeholders inside generated-script
+# heredocs) is reported as a non-blocking warning — template placeholders
+# are not environment reads.
+CRED_SHAPE_RE = re.compile(
+    r"(?:TOKEN|KEY|SECRET|PASSWORD|CREDENTIALS?)S?$"
+    r"|^(?:GH_|GITHUB_|GOOGLE_|GEMINI_|AWS_|ANTHROPIC_|OPENAI_|REPLICATE_"
+    r"|SLACK_|DISCORD_|TELEGRAM_|ELEVENLABS_|CLOUDINARY_|BLOTATO_|KLAP_)"
+)
 
 SECRET_PATTERNS = [re.compile(p) for p in (
     r"ghp_[A-Za-z0-9]{36}",
@@ -276,8 +288,13 @@ def validate_skill(d):
 
     external = referenced - assigned - ENV_IGNORE
     undeclared = sorted(external - set(declared))
-    if undeclared:
-        fail("env-coherence", f"referenced but not declared in requires.env: {undeclared}")
+    cred_undeclared = [k for k in undeclared if CRED_SHAPE_RE.search(k)]
+    placeholderish = [k for k in undeclared if not CRED_SHAPE_RE.search(k)]
+    if cred_undeclared:
+        fail("env-coherence", f"credential-shaped env referenced but not declared in requires.env: {cred_undeclared}")
+    if placeholderish:
+        problems.append(("WARN", "env-coherence",
+                         f"non-credential env-looking refs (likely template placeholders): {placeholderish}"))
     for k in declared:
         if k not in external and not re.search(rf"\b{re.escape(k)}\b", text):
             fail("env-coherence", f"declared but never referenced (decorative): {k}")
@@ -376,13 +393,12 @@ def main(argv):
     for d in dirs:
         problems = validate_skill(d)
         grand_total += sum(p.stat().st_size for p in d.rglob("*") if p.is_file())
-        if problems:
+        has_fail = any(level == "FAIL" for level, _, _ in problems)
+        if has_fail:
             failed = True
-            print(f"✗ {d.name}")
-            for level, gate, msg in problems:
-                print(f"    [{level}] {gate}: {msg}")
-        else:
-            print(f"✓ {d.name}")
+        print(f"{'✗' if has_fail else '✓'} {d.name}")
+        for level, gate, msg in problems:
+            print(f"    [{level}] {gate}: {msg}")
 
     if grand_total > TOTAL_MAX_BYTES:
         failed = True
