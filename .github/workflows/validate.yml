@@ -1,0 +1,37 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install parser dependency
+        run: pip install pyyaml
+
+      # Reuse the platform's own frontmatter parser (pinned) so this repo and
+      # Trinity cannot drift — trinity-enterprise#296 acceptance criterion.
+      - name: Vendor the Trinity platform frontmatter parser
+        run: |
+          PIN=3f1d4c89b7b5a87f4b0f72910c4512bc439844af
+          mkdir -p /tmp/platform/utils
+          curl -fsSL "https://raw.githubusercontent.com/Abilityai/trinity/$PIN/src/backend/services/skill_packaging.py" -o /tmp/platform/skill_packaging.py
+          curl -fsSL "https://raw.githubusercontent.com/Abilityai/trinity/$PIN/src/backend/utils/safe_yaml.py" -o /tmp/platform/utils/safe_yaml.py
+          touch /tmp/platform/utils/__init__.py
+
+      - name: Validate skills (library gates + platform parser parity)
+        run: python tools/validate.py --all --platform-parser /tmp/platform
+
+      - name: README index freshness
+        run: |
+          python tools/validate.py --write-readme
+          git diff --exit-code README.md
