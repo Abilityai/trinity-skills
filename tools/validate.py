@@ -174,6 +174,23 @@ def parse_frontmatter_block(block):
         return None
 
 
+# --------------------------------------------- catalog.yaml self-description
+# Root + category enum come from catalog.yaml when present (the vendor-neutral
+# layout, trinity-enterprise#332); probe order mirrors the platform's:
+# declared skills_root → skills/ → .claude/skills/.
+_cat_file = ROOT / "catalog.yaml"
+if _cat_file.is_file():
+    _catalog = parse_frontmatter_block(_cat_file.read_text()) or {}
+    _decl = str(_catalog.get("skills_root") or "").strip().strip("/")
+    if _decl:
+        SKILLS_DIR = ROOT / _decl
+    _cats = _catalog.get("categories")
+    if isinstance(_cats, dict) and _cats:
+        CATEGORIES = set(_cats)
+elif (ROOT / "skills").is_dir():
+    SKILLS_DIR = ROOT / "skills"
+
+
 # ------------------------------------------------------------------ file walk
 
 def _text_files(d):

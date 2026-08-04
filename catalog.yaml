@@ -1,0 +1,17 @@
+# catalog.yaml — machine-readable self-description of this repository.
+# Consumers (Trinity skill_service, UIs, other runtimes) read this instead of
+# assuming harness conventions. Platform side: trinity-enterprise#332.
+schema_version: 1
+skills_root: skills/
+
+categories:   # every skill's `category:` frontmatter comes from this enum
+  agent-development: "Skills that build or extend agents and fleets"
+  visual-communication: "Documents, decks, pages, diagrams, images"
+  documents-and-data: "Extraction, indexing, transformation of files and data"
+  research-and-analysis: "Gathering and judging external information"
+  workspace: "Git, hygiene, self-diagnostics, skill authoring"
+
+providers:    # canonical env key per credential provider (rules in CONTRIBUTING.md)
+  github: GITHUB_TOKEN
+  google-gemini: GEMINI_API_KEY
+  replicate: REPLICATE_API_TOKEN

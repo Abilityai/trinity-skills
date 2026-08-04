@@ -14,7 +14,7 @@ Instances pin this repo **to a release tag**, never a branch head:
 
 ## Layout & naming
 
-- **Flat, always**: `.claude/skills/<name>/SKILL.md`. The platform's sync walks exactly one level — nested directories are invisible. Not configurable.
+- **Flat, always**: `skills/<name>/SKILL.md`. The platform's sync walks exactly one level — nested directories are invisible. The root is declared in `catalog.yaml` (`skills_root:`); Trinity resolves it per source (probe order `catalog.yaml` → `skills/` → `.claude/skills/`, trinity-enterprise#332).
 - Names: lowercase kebab-case, `^[a-z0-9][a-z0-9-]{0,63}$`, named the way they're invoked (`/one-pager`).
 - **No version suffixes** (`-v2`) — the name is the invocation surface and the platform's assignment key. Versioning lives in frontmatter and tags (below). A rewrite that changes what a skill fundamentally *is* earns a new descriptive name, and the old skill retires via `deprecated:`.
 - Family prefixes only for real families (e.g. `add-*` = agent-capability installers). No artificial taxonomy prefixes.
@@ -31,7 +31,7 @@ Every skill declares `category:` from this enum (CI-enforced):
 | `research-and-analysis` | Gathering and judging external information |
 | `workspace` | Git, hygiene, self-diagnostics, skill authoring |
 
-Extending the enum is a PR to this file **and** `tools/validate.py` together.
+The enum lives in `catalog.yaml` (`categories:`) — the validator reads it from there. Extending it is a PR to `catalog.yaml` and this file together.
 
 ## Frontmatter contract
 
