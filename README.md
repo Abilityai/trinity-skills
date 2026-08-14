@@ -15,15 +15,15 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 |---|---|---|---|
 | `add-backlog` | 2.0 | mirrored · abilities | Add GitHub Issues backlog workflow to any agent — creates the full development cycle (backlog, claim, close, groom, roadmap, autoplan, commi |
 | `add-canon` | 1.6 | mirrored · abilities | Give any agent a shared canonical-data layer — installs /canon-publish (commit this agent's own folder in the fleet's shared canon repo), /c |
-| `add-git-sync` | 1.1 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
+| `add-git-sync` | 1.2 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
 | `add-memory` | 1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
-| `add-orchestrator` | 1.18 | mirrored · abilities | Make any agent a system-aware orchestrator — installs /discover-agents (discover the fleet from live Trinity and/or a repo list into a descr |
-| `add-pipeline` | 1.5 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
-| `add-project-management` | 1.3 | mirrored · abilities | Install cross-actor project management into this agent — GitHub Issues as single source of truth, uniform task anatomy with approval-ready c |
-| `adjust-playbook` | 1.9 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
-| `agent-fleet-analysis` | 2.3.1 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
+| `add-orchestrator` | 1.19 | mirrored · abilities | Make any agent a system-aware orchestrator — installs /discover-agents (discover the fleet from live Trinity and/or a repo list into a descr |
+| `add-pipeline` | 1.6 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
+| `add-project-management` | 1.4 | mirrored · abilities | Install cross-actor project management into this agent — GitHub Issues as single source of truth, uniform task anatomy with approval-ready c |
+| `adjust-playbook` | 1.10 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
+| `agent-fleet-analysis` | 2.3.2 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.1 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
-| `create-playbook` | 2.13 | mirrored · abilities | Create a new skill or playbook |
+| `create-playbook` | 2.14 | mirrored · abilities | Create a new skill or playbook |
 | `validate-pipeline` | 1.2 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data
