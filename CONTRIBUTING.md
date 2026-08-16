@@ -58,6 +58,7 @@ Rules:
 - Optional lifecycle keys: `deprecated: true` and `superseded-by: <name>` — how a skill retires. Deprecated skills are removed at the next major tag.
 - Mirrored skills carry `metadata.mirror: "abilities@<sha> <path>"` (see below).
 - Unknown keys are tolerated by the platform parser, but don't invent fields — propose them here first.
+- **Callable as one line.** A library skill may be invoked by a schedule, an orchestrator, or another agent as a single `/name [args]` message (the fleet's playbook-call convention). It must therefore run correctly from that one line: declare its inputs in `argument-hint`, and if it has approval gates, declare and implement a headless mode (`--autonomous`) — a gated skill invoked unattended blocks on a prompt nobody sees. The SKILL.md is the contract; no input/output schema is required.
 
 ## Credentials
 
