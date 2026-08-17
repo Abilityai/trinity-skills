@@ -45,7 +45,9 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
+| `animated-explainer` | 1.26 | library | Build an animated, data-driven explainer film for a real system — a canvas film that renders live from the product's own data and cannot dri |
 | `create-explanatory-image` | 1.1 | library | Generate explanatory diagrams and infographics that visually communicate concepts |
+| `microsite` | 1.5 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
 | `nano-banana-image-generator` | 1.0 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image Preview) |
 
 ### workspace
