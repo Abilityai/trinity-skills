@@ -47,8 +47,11 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 |---|---|---|---|
 | `animated-explainer` | 1.26 | library | Build an animated, data-driven explainer film for a real system — a canvas film that renders live from the product's own data and cannot dri |
 | `create-explanatory-image` | 1.1 | library | Generate explanatory diagrams and infographics that visually communicate concepts |
+| `explain-visually` | 1.1 | library | Explain a complex topic back to you with visuals - the right diagram for each facet (flowchart, timeline, sequence, schema/ER, state machine |
 | `microsite` | 1.5 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
 | `nano-banana-image-generator` | 1.0 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image Preview) |
+| `one-pager` | 1.2 | library | Generate a brand-locked, information-dense single-page PDF that lets a reader understand an entire topic - a company, a product, a project,  |
+| `presentation` | 1.2 | library | Generate a brand-locked multi-slide presentation deck (16:9, 1920x1080) and assemble into a PDF |
 
 ### workspace
 
