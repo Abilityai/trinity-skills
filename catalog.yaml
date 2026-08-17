@@ -15,3 +15,5 @@ providers:    # canonical env key per credential provider (rules in CONTRIBUTING
   github: GITHUB_TOKEN
   google-gemini: GEMINI_API_KEY
   replicate: REPLICATE_API_TOKEN
+  elevenlabs: ELEVENLABS_API_KEY
+  vercel: VERCEL_TOKEN

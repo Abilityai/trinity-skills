@@ -70,6 +70,8 @@ Rules:
    | GitHub | `GITHUB_TOKEN` |
    | Google Gemini | `GEMINI_API_KEY` (skills may fall back to `GOOGLE_API_KEY`, but declare the canonical) |
    | Replicate | `REPLICATE_API_TOKEN` |
+   | ElevenLabs | `ELEVENLABS_API_KEY` |
+   | Vercel | `VERCEL_TOKEN` |
 
    A PR introducing a new provider adds its canonical key to this table in the same PR.
 3. **Secrets only in env; config in files.** Non-secret configuration (account IDs, defaults) may ship as a config file inside the skill.
