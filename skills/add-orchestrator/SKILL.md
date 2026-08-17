@@ -3,12 +3,19 @@ name: add-orchestrator
 description: Make any agent a system-aware orchestrator — installs /discover-agents (discover the fleet from live Trinity and/or a repo list into a descriptive fleet/system-map.yaml), /compose-system (turn the map into a Trinity SystemManifest and deploy_system), and /orchestrate (route, fan out, and run ephemeral agents via Trinity MCP). Aligns with Trinity's existing SystemManifest; no parallel standard.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, Skill
 user-invocable: true
+argument-hint: "[--check]"
 metadata:
-  mirror: "abilities@70c1e60 plugins/agent-dev/skills/add-orchestrator"
-  version: "1.20"
+  mirror: "abilities@b39a110 plugins/agent-dev/skills/add-orchestrator"
+  version: "1.26"
   created: 2026-07-01
   author: Ability.ai
   changelog:
+    - "1.26: Bundled templates learn the deploy-as-is → onboard-in-place ladder for spec-less catalog repos (trinity#1704 / ent#411): discover-agents 1.9 reports them under `no spec:` with the fix, compose-system 1.4 resolves them to `github:Org/repo` anyway and hands each a post-deploy `/trinity:onboard in-place` playbook call, orchestrate 1.15 states what a spec-less ephemeral arrives without and when the ladder (not an ephemeral) is the right tool. Companion to trinity plugin 2.8.0 (onboard 6.0 in-place mode + plugins: block, sync 2.7.0 plugin reconcile)"
+    - "1.25: Refresh the Check-mode illustrations to the post-back-port bundle (1.23 moved profile-fleet to 1.6 and sync-fleet-to-head to 1.4; 1.21 moved discover-agents to 1.8 and orchestrate to 1.14), so the example report and the Step 4 overwrite-prompt samples no longer show version pairs that contradict the versions this bundle actually ships. Illustration-only — no logic change. The `--autonomous` gate the 1.24 convention section promises is now live in the marketplace manager's /audit-wizards v1.3 (abilities#6)"
+    - "1.24: Document the bundle-wide `--autonomous` run-mode convention (issue #6) — the canonical contract the per-skill instances (`/sync-fleet-to-head` v1.4, `/profile-fleet` v1.6, back-ported in #5) now point at instead of each re-deriving it: mode comes from `$ARGUMENTS` never a caller's prose; in autonomous mode the skill never calls `AskUserQuestion`, takes the safe default at each gate, never takes a destructive/irreversible path a gate was protecting, and turns a non-trivial decision into a `needs-attention` line rather than a guess. The invariant that *earns* the mode is that every below-the-gate action is non-destructive by construction. Promotes what corbin invented per-skill on live crons into a documented marketplace convention, so a gated skill on an unattended cron stops blocking on an unseen prompt and burning its whole timeout. Enforcement is mechanical: `/audit-wizards` flags any `automation: gated` skill listed in a `schedules:` block without a declared autonomous mode. (Versions 1.21–1.23 are the other in-flight PRs #9/#8/#5.)"
+    - "1.23: Back-port the two stranded runtime skills from the production orchestrator (issue #5), closing the field-hardening back-flow gap. /sync-fleet-to-head 1.0 → 1.4 (post-pull sync-state cache-lag note, two 409 subtypes — unstaged vs unmerged files, 400 submodule-fetch recovery row, and a --autonomous run mode). /profile-fleet 1.4 → 1.6 (autonomy-toggle cross-check — enabled schedules + autonomy_enabled:false is a silent no-op — and a --autonomous run mode; allowed-tools gains get_schedule_executions to match the new body). Universalized rather than swapped verbatim: dropped the corbin-specific Step 0 refresh_workspace.sh scaffolding and re-homed profile-fleet's autonomous correction queue from corbin's fleet-gap-analysis/status.yaml onto the bundle's own /fleet-reconcile convention (.claude/skills/profile-fleet/status.yaml). The --autonomous mode is landed per-skill here; its promotion to a bundle-wide convention + an /audit-wizards gate is issue #6. (Version takes 1.23 to sit above the in-flight 1.21 reserved for PR #7/#9 and 1.22 for issue #8.)"
+    - "1.22: Install-time divergence detection (issue #8) — a read-only `--check` mode compares every installed runtime skill against its bundled template on three axes: `installed < bundled` (upgrade available), `installed > bundled` (BACK-PORT candidate — the field-hardened copy the marketplace should pull from, the signal issue #5 went weeks without), and equal version but differing content (local customization). Reported in the canon-doctor PASS/WARN/FAIL shape with a one-line fleet-readable verdict. Step 4's per-skill overwrite prompt now runs the same comparison, so the warning — a silent downgrade or an about-to-be-clobbered local edit — arrives at the moment of decision, not after. Deliberately scoped to add-orchestrator's own bundle and stateless; the plugin-framework-wide version is a separate follow-up. (Version skips 1.21, reserved for the open PR #7/#9.)"
+    - "1.21: allowed-tools↔body drift fixes (issue #7) — /discover-agents v1.8 adds mcp__trinity__report to its grant (the Step 7 fleet_scan report was in the body but ungranted, silently never publishing under enforcement); /orchestrate v1.14 drops the three vestigial schedule tools (create/delete/list_agent_schedule) the v1.7 watchdog stopped using. Both are grant-vs-body hygiene, no behaviour change"
     - "1.20: orchestrate template 1.13 — dispatch is a one-line playbook call resolved from the target's live get_agent_skills catalog (fleet convention protocols/playbook-call.md); prose briefs are the recorded exception"
     - "1.19: Platform caveat rewritten for ent#89 (materialized at creation, disabled unless a literal YAML true, max 20, deduped by name, never re-applied on recreate) and the steward entry now scaffolds enabled: false so a template-derived agent cannot silently inherit an armed unattended sweep. Dropped the non-schema `id:` key in favour of `name:` as the identity key. Steward cadence no longer claims 'server-local time' — schedules and the container clock are both UTC (#1795), and legacy IANA aliases now 500 on create (#1823). Bundled /orchestrate → v1.12 (rooms + A2A routing)"
     - "1.18: Bundled /orchestrate v1.11 — event-choreography layer for standing 'whenever X happens, have Y react' asks (fourth routing pattern next to Single/Fan-out/Chain): custom domain events via emit_event alongside the #1578 backend terminals, subscriptions wired SELF-SERVICE (subscribe_to_event always subscribes the caller — the orchestrator dispatches the setup task to the subscriber, never subscribes on-behalf), edges recorded in orchestration.md §6, and four unenforced design rules (exact-triple match/no wildcards; no loop guard outside agent.task.* — custom event graphs must stay acyclic; wakes reach only running subscribers, at-most-once/no replay; interpolated payloads are a cross-agent injection surface). Allowed-tools catches up: event tools + the set_reminder/cancel_reminder the v1.7 watchdog already instructed"
@@ -38,6 +45,8 @@ category: agent-development
 > ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — the top entry of `metadata.changelog` above — e.g. `add-orchestrator vX.Y — recent: <summary>`. Then proceed.
 
 Turn any Trinity-compatible agent into a **system-aware orchestrator**: an agent that knows what other agents exist (deployed *or* just sitting in a GitHub repo), what each can do, and can route work to them, batch across them, or roll one out ephemerally, use it, and spin it back down.
+
+> 🔍 **Already installed? `/add-orchestrator --check`** runs a read-only divergence report — per installed skill: upgrade available, back-port candidate (your copy is *ahead* of the bundle), or a local customization about to be clobbered — before you re-run and overwrite anything. See **Check mode** below.
 
 **Two modes — pick by whether the fleet already exists. Don't force a linear pipeline.**
 
@@ -98,7 +107,96 @@ Drive (opt-in project-management layer — Q3 at install):
 
 ---
 
+## Run-mode convention — `--autonomous` for gated skills on crons
+
+**The problem this fixes.** A skill that declares `automation: gated` calls `AskUserQuestion` at its decision points. Put that same skill on an unattended Trinity cron and every run blocks on an approval prompt nobody sees, then burns its **entire timeout** with nothing committed. The adaptations that make such a skill cron-safe (skip the prompt, choose the safe default, scope the commit) must live **in the versioned skill**, not in the scheduler's message — a scheduler message is unversioned, untestable, invisible to anyone invoking the skill by hand, and destroyed by the next schedule rewrite.
+
+So every bundled skill that is both `automation: gated` **and** designed to run on a cron declares a `--autonomous` run mode. This section is the **canonical contract**; each such skill carries a `### Autonomous mode contract` subsection that is the per-skill *instance* of it, not a fresh re-derivation. `/sync-fleet-to-head` and `/profile-fleet` are the first two instances (back-ported from the production orchestrator, issue #5).
+
+**The contract (all five clauses hold in every autonomous-mode skill):**
+
+1. **Mode comes from `$ARGUMENTS`, never from a caller's prose.** The trigger is the literal `--autonomous` token in the invocation, so the cron message is the bare call — `/<skill> --autonomous` — and nothing else. A chat sentence that merely *sounds* unattended does not enable the mode.
+2. **Never call `AskUserQuestion`.** Each gate degrades to *log-the-plan-and-proceed* (for a safe default) or *skip-and-report* (for anything that would otherwise need a human).
+3. **Take the safe default at each gate; never take a destructive or irreversible path a gate was protecting.** The invariant that *earns* the mode is that **every below-the-gate action is non-destructive by construction** — auto-proceeding is safe precisely because the worst outcome is a no-op, not damage. Autonomous mode relaxes *who approves*, never *what is permitted*: forbidden operations stay forbidden in every mode.
+4. **Never guess a non-trivial decision — record it.** A genuinely ambiguous choice (a conflict that isn't trivially union-mergeable, a semantic edit, anything a gate existed to catch) becomes a **`needs-attention`** line in the run result and is left untouched, never resolved by a guess.
+5. **Always report per-item outcome**, and surface every `needs-attention` item clearly so a human can close it later. A run that could do nothing safely still reports — silence is not an outcome.
+
+**Declaring the mode in a skill (what the audit checks for):**
+- `argument-hint` includes `[--autonomous]`.
+- The body carries a **Run modes** table (default vs `--autonomous`) and an **### Autonomous mode contract** subsection instantiating the five clauses above, closing with a pointer back here: *"the per-skill instance of a bundle-wide `--autonomous` convention (issue #6)."*
+
+**Mechanical enforcement.** `/audit-wizards` runs a deterministic gate that flags any skill declaring `automation: gated` which is listed in a `schedules:` block yet declares **no** autonomous mode — the exact class of bug that left a gated `/video-intake` blocking on an unseen prompt every day. A gate FAIL blocks publish; the fix is to add the `--autonomous` mode above, not to remove the skill from the schedule.
+
+`automation: autonomous` skills (e.g. `/project-steward`) already never prompt and are out of scope; `automation: manual` skills are never scheduled and are out of scope. The convention targets exactly the `automation: gated` ∩ scheduled intersection.
+
+---
+
 ## Process
+
+### Check mode (`--check`) — install-time divergence detection
+
+Invoked as `/add-orchestrator --check`: a **read-only** report of how this agent's *installed* runtime skills compare to the *bundled* templates they were copied from. Nothing is written, no files are touched. The same per-skill comparison is called inline by **Step 4**'s overwrite prompt, so the warning reaches the operator *at the moment of the overwrite decision*, not after it (issue #8). When `--check` is the invocation, run this section and stop — skip the install steps.
+
+**Scope is deliberate and stateless.** This compares only the skills add-orchestrator itself installs (`discover-agents`, `compose-system`, `orchestrate`, `sync-fleet-to-head`, `profile-fleet`, `fleet-reconcile`, and the Q3 pair `project-init` / `project-steward`) against *this bundle's* `templates/`. It is **not** a general skill-registry inventory and keeps **no state on disk** — the bundle is the reference, the installed copy is the subject. The plugin-framework-wide version (every plugin that copies skills into agent repos) is a separate, larger call filed as a follow-up.
+
+**Per skill, resolve two version stamps and compare content:**
+- `installed` = `metadata.version` in the agent's `.claude/skills/<skill>/SKILL.md`
+- `bundled`   = `metadata.version` in this skill's `templates/<skill>.md`
+
+Compare **numerically, per dotted component** — `1.9 < 1.13`, so a plain string compare is wrong. Then classify into the three states issue #8 asked for (the third is the one everyone forgets):
+
+| State | Verdict | Meaning |
+|---|---|---|
+| not installed | — (skip) | the agent never adopted this skill — a plain install, nothing to reconcile |
+| `installed == bundled`, content identical | **PASS** | in sync |
+| `installed == bundled`, content differs | **WARN** | **local customization** — the copy was hand-edited (e.g. a field-directive routing block). Surface the diff *before* an overwrite silently destroys it |
+| `installed < bundled` | **WARN** | **upgrade available** — the bundle moved ahead; overwriting pulls the copy forward |
+| `installed > bundled` | **FAIL** | **back-port candidate** — the *installed* copy is ahead of the bundle: a field-hardened local copy the marketplace should pull *from*, and overwriting it is a silent **downgrade**. The signal nobody was watching for weeks (issue #5) |
+
+`FAIL` here does not mean "broken" — it is the loudest state on purpose, because a back-port candidate and an about-to-be-clobbered customization are exactly the two failures issue #8 was filed for.
+
+**Mechanics** (read-only — resolves stamps, then diffs installed vs bundled):
+
+```bash
+SKILL_DIR="<this add-orchestrator skill's own directory>"
+ver()  { grep -m1 -E '^[[:space:]]*version:' "$1" 2>/dev/null | tr -dc '0-9.'; }
+# numeric dotted compare → prints <, =, or >
+vcmp() { awk -v a="$1" -v b="$2" 'BEGIN{
+  n=split(a,x,"."); m=split(b,y,"."); L=(n>m?n:m);
+  for(i=1;i<=L;i++){u=x[i]+0; v=y[i]+0; if(u<v){print "<";exit} if(u>v){print ">";exit}}
+  print "=" }'; }
+
+for skill in discover-agents compose-system orchestrate sync-fleet-to-head profile-fleet fleet-reconcile project-init project-steward; do
+  inst=".claude/skills/$skill/SKILL.md"; bund="$SKILL_DIR/templates/$skill.md"
+  [ -f "$inst" ] || { echo "$skill: — not installed"; continue; }
+  iv=$(ver "$inst"); bv=$(ver "$bund"); cmp=$(vcmp "$iv" "$bv")
+  if [ "$cmp" = "=" ]; then
+    if diff -q "$bund" "$inst" >/dev/null 2>&1; then echo "$skill: PASS in sync (v$iv)"
+    else echo "$skill: WARN local customization — installed v$iv == bundled, content differs"; fi
+  elif [ "$cmp" = "<" ]; then echo "$skill: WARN upgrade available — installed v$iv < bundled v$bv"
+  else echo "$skill: FAIL back-port candidate — installed v$iv > bundled v$bv (overwrite = downgrade)"; fi
+done
+```
+
+An installed copy is a byte-for-byte `cp` of `templates/<skill>.md` (Step 4 does no placeholder substitution), so on a clean install `diff -q` is exact and any difference at an equal version is a genuine local edit. To *show* the customization, run `diff "$bund" "$inst"` (or `git diff --no-index -- "$bund" "$inst"`) and print a compact hunk.
+
+**Why equal-version is the only clean customization signal.** The bundle carries only the *current* template, not the historical one a behind copy was made from. So at `installed < bundled` the diff mixes the upgrade delta with any local edits and cannot cleanly separate them; only at `installed == bundled` is every differing line a local customization. Show the full diff for the equal-version case; for the behind case, lead with the version gap and offer the (mixed) diff on request.
+
+**Report** — canon-doctor PASS/WARN/FAIL shape, ordered most-severe first (FAIL → WARN → PASS → not installed), closing with one verdict line an orchestrator can read fleet-wide:
+
+```
+add-orchestrator divergence check — <agent name>
+  profile-fleet       FAIL  back-port candidate — v1.7 > bundled v1.6 (overwrite = downgrade)
+  orchestrate         WARN  local customization — v1.14 == bundled, 12 lines differ (diff below)
+  sync-fleet-to-head  WARN  upgrade available — v1.2 < bundled v1.4
+  discover-agents     PASS  in sync (v1.8)
+  compose-system      PASS  in sync (v1.3)
+  fleet-reconcile     —     not installed
+
+  verdict: DIVERGED — 1 back-port candidate, 1 behind, 1 customized. Back-port profile-fleet into the bundle before overwriting; review the orchestrate diff before any re-copy.
+```
+
+`verdict: IN SYNC` needs every installed skill at PASS; WARN and FAIL both count against it. Keep the verdict to one line — orchestrators dispatch this fleet-wide and read only that line per agent.
 
 ### Step 1: Preflight
 
@@ -131,7 +229,7 @@ Use `AskUserQuestion`:
 - `Core three` (discover-agents, compose-system, orchestrate) — the discover → compose → route trio, without the fleet-maintenance skills
 - `Discovery only` (discover-agents) — just build the system map; wire the rest later
 
-If any target skill directory already exists under `.claude/skills/`, ask per-skill: overwrite / skip / cancel. Never silently overwrite.
+If any target skill directory already exists under `.claude/skills/`, ask per-skill: overwrite / skip / cancel. Never silently overwrite — and never *blindly*: run the **Check mode** comparison for that skill first and fold its verdict into the prompt (Step 4 spells out how), so the operator sees an upgrade, a back-port candidate, or a local customization before choosing.
 
 **Q2 — Seed `fleet/sources.yaml` with the current repo list?** (free text, optional)
 - Offer to paste an initial list of repositories now (local paths and/or `github:Org/repo`), or start with the commented example and edit later.
@@ -188,7 +286,15 @@ mkdir -p fleet/project-steward/digests fleet/project-steward/outputs
 
 ### Step 4: Copy the selected runtime skills
 
-For each skill selected in Q1, copy its template. The templates are ready to use as-is — **no placeholder substitution** (they read `fleet/sources.yaml` / `fleet/system-map.yaml` at runtime and infer the agent name themselves):
+For each skill selected in Q1, copy its template. The templates are ready to use as-is — **no placeholder substitution** (they read `fleet/sources.yaml` / `fleet/system-map.yaml` at runtime and infer the agent name themselves).
+
+**Before overwriting any existing `.claude/skills/<skill>/SKILL.md`, run the Check-mode comparison for that one skill (above) and present its verdict inside the overwrite prompt** — this is the moment issue #8 exists for. Make the prompt say what the operator is about to do:
+- **PASS** (in sync) — nothing to warn about; the overwrite is a no-op. Offer skip as the default.
+- **upgrade available** (`installed < bundled`) — "orchestrate v1.12 → v1.14 (upgrade). Overwrite / skip / cancel." Overwrite is the safe default.
+- **local customization** (`installed == bundled`, content differs) — show the diff first: "orchestrate v1.14 == bundled but **12 lines were hand-edited** (diff below) — overwriting DISCARDS them. Overwrite / skip / cancel." Default to skip; if they overwrite, tell them to re-apply the edit.
+- **back-port candidate** (`installed > bundled`) — "profile-fleet installed v1.7 is **ahead** of bundled v1.6 — overwriting is a DOWNGRADE and loses field-hardening. Recommend skip and back-port the installed copy into the marketplace instead. Overwrite / skip / cancel." Default to skip.
+
+A fresh install (no existing copy) skips all of this and just copies.
 
 ```bash
 for skill in discover-agents compose-system orchestrate sync-fleet-to-head profile-fleet fleet-reconcile; do
@@ -355,7 +461,8 @@ orchestrator's own repo work.
 | Situation | Action |
 |---|---|
 | Not in an agent dir (no CLAUDE.md) | Ask for path or refuse |
-| A target skill dir already exists | Ask per-skill: overwrite / skip / cancel |
+| A target skill dir already exists | Run the **Check mode** comparison for that skill, then ask per-skill: overwrite / skip / cancel — with the verdict (upgrade / back-port candidate / local customization + diff) in the prompt |
+| `--check` invoked | Run **Check mode** only (read-only divergence report); skip all install steps |
 | `template.yaml` absent | Skip Step 6 (capabilities block); note the agent isn't self-describing yet |
 | `gh` missing and a source is `github:...` | The installed `/discover-agents` falls back to `git clone --depth 1`; warn here |
 | `gh` installed but not authenticated | Warn at preflight; `github:` sources degrade to anonymous clone (public repos only) and Q3's registry probe catches the project layer |
@@ -366,4 +473,4 @@ orchestrator's own repo work.
 
 ## Idempotency
 
-Re-running is safe: existing `fleet/sources.yaml`, `fleet/system-map.yaml`, and `fleet/orchestration.md` are never clobbered (only seeded when absent); the CLAUDE.md section, the `@fleet/orchestration.md` import, and the dashboard panel are each grep-guarded; the §3b ownership-matrix and §3c data-layer inserts are grep-guarded on `### 3b`/`### 3c`, and the standard's §12 loop-closure insert on `## 12. Loop closure`, each applied only on an explicit yes; and skill copies prompt before overwrite. `/discover-agents` rewrites only the fenced `GENERATED:*` blocks in `orchestration.md` — your prose is never touched. To refresh, run `/discover-agents`; to re-wire a skill, delete its dir under `.claude/skills/` and re-run.
+Re-running is safe: existing `fleet/sources.yaml`, `fleet/system-map.yaml`, and `fleet/orchestration.md` are never clobbered (only seeded when absent); the CLAUDE.md section, the `@fleet/orchestration.md` import, and the dashboard panel are each grep-guarded; the §3b ownership-matrix and §3c data-layer inserts are grep-guarded on `### 3b`/`### 3c`, and the standard's §12 loop-closure insert on `## 12. Loop closure`, each applied only on an explicit yes; and skill copies prompt before overwrite, the prompt now carrying the **Check mode** verdict (upgrade / back-port candidate / local customization) so a re-run never silently downgrades a field-hardened copy or discards a local edit. `/add-orchestrator --check` is fully read-only — it writes nothing and is safe to run anytime. `/discover-agents` rewrites only the fenced `GENERATED:*` blocks in `orchestration.md` — your prose is never touched. To refresh, run `/discover-agents`; to re-wire a skill, delete its dir under `.claude/skills/` and re-run.
