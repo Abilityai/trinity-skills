@@ -8,7 +8,7 @@ category: project-management
 requires:
   binaries: [git, gh]
 metadata:
-  mirror: "abilities@7ff567a plugins/agent-dev/skills/commit"
+  mirror: "abilities@7090c8b plugins/agent-dev/skills/commit"
   version: "1.1"
   created: 2026-04-28
   author: Ability.ai
@@ -48,7 +48,7 @@ If an issue number was passed as `$ARGUMENTS`, use that instead.
 
 If multiple in-progress issues, ask which one this commit closes.
 
-**No in-progress issue and no argument → checkpoint mode.** Do not stop: stage the changed agent files (Step 3), compose the message from the diff (`Update agent state: <what changed>`), commit, and report the sha. Skip the issue close in Step 5. This keeps `/commit` usable as a plain save when the agent is not running the issue workflow.
+**No in-progress issue and no argument → checkpoint mode.** Do not stop: stage the agent-state set — `memory/ .claude/memory/ outputs/ .claude/skills/ CLAUDE.md template.yaml` (whatever exists; never `.env`, `.mcp.json`, `*.log`, or anything credential-shaped) — compose the message from the diff (`Update agent state: <what changed>`), commit, and report the sha. Skip the issue close in Step 5. This keeps `/commit` usable as a plain save when the agent is not running the issue workflow.
 
 ### Step 2: Check for Changes
 
