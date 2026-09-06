@@ -3,12 +3,14 @@ name: add-project-management
 description: Install cross-actor project management into this agent — GitHub Issues as single source of truth, uniform task anatomy with approval-ready completion lattice (open → pending-verification → done), loop closure in both directions (the agent closes loops with the user; the user is handed the loops only they can close with other people or agents), autonomous project steward, and projection sync with Google Tasks adapter v1. Writes PROJECT_STANDARD.md + five runtime skills. No dependency on fleet infrastructure.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 user-invocable: true
+deprecated: true
+superseded-by: project-init
 metadata:
-  mirror: "abilities@dc855a3 plugins/agent-dev/skills/add-project-management"
-  version: "1.4"
+  version: "1.5"
   created: 2026-07-30
   author: Ability.ai
   changelog:
+    - "1.5: RETIRED from the library (2026-09-06) — installers that write unmaintained copies of skills into an agent are marketplace tooling, not library skills. Assign the five project skills it used to embed (project-init, project-task, project-steward, project-reconcile, project-intake) — /project-init materializes PROJECT_STANDARD.md from its shipped template from this library instead; the platform keeps assigned skills current. This entry is no longer mirrored from abilities and will be removed at the next minor tag"
     - "1.4: Fix — `status:done` was written by the completion lattice but never created. The verification close (`/project-steward` §6, `/project-reconcile` human-endorsement path) and every human direct-close set a label that did not exist on a fresh registry, so `gh issue edit --add-label` failed and the task never reached its terminal state. Added to both idempotent label blocks (installer Step 11, `/project-init` Step 5) and to the §3 taxonomy table, colored to match `/agent-dev:add-backlog`'s label of the same name so a shared repo does not drift. Step 3 gains a one-line self-heal for registries created before this fix"
     - "1.3: Moved into the agent-dev plugin — invoke as `/agent-dev:add-project-management`. It installs a capability into an agent, which is exactly agent-dev's remit, and living in its own single-skill plugin kept it invisible to anyone browsing agent-dev for ways to extend an agent. No change to installed behavior, the standard, or any runtime skill. The old `add-project-management` plugin remains for one release as a pointer stub"
     - "1.2: Loop closure (Invariant 7) — §14 in PROJECT_STANDARD.md makes silence a failure mode in both directions: inbound, every run closes with what's true / what's waiting on the operator / what happens next unprompted, operator-initiated results notify the operator, and an unanswered ask gets louder with age; outbound, work parked on a person or agent outside the registry gets waiting-on:<actor>, ages in the digest's Your open loops on a 3d/7d/14d ladder, and comes with a drafted nudge the human sends (the agent never contacts third parties). /project-steward 1.1 (Step 3c open-loop pass), /project-task 1.2 + /project-intake 1.1 (--waiting-on), §3/§7/§8 additions, §14 upgrade path for existing standards"

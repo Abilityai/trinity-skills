@@ -1,107 +1,150 @@
 ---
 name: commit
-description: Create a meaningful git commit to checkpoint current agent state. Use when the user says "commit", "save changes", "checkpoint", "commit my work", or asks to save progress to git.
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*)
-argument-hint: [optional commit message]
-category: workspace
+description: Commit changed skill files and close the in-progress issue — writes a traceability commit message referencing the issue number
+argument-hint: "[issue-number]"
+allowed-tools: Bash, Read
+user-invocable: true
+category: project-management
+requires:
+  binaries: [git, gh]
 metadata:
-  version: "1.0"
+  mirror: "abilities@7ff567a plugins/agent-dev/skills/commit"
+  version: "1.1"
+  created: 2026-04-28
+  author: Ability.ai
   changelog:
-    - "1.0: Promoted to trinity-skills library (2026-08-04)"
+    - "1.1: Checkpoint fallback — with no in-progress issue and no issue argument, commit the changed agent-state files as a plain checkpoint (message from the diff, no issue close) instead of stopping. Lets the one library-wide /commit serve both the issue-driven workflow and a plain save"
+    - "1.0: Initial version — stages changed skill files, writes a traceability commit referencing the in-progress issue, and closes it"
 ---
 
-# Commit Agent State
+# Commit
 
-Create a meaningful git commit to checkpoint the current agent state. Run once per session at natural breakpoints or session end.
+> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — the top entry of `metadata.changelog` above — e.g. `commit vX.Y — recent: <summary>`. Then proceed.
 
-## Quick Start
+Stage changed skill files, write a commit message tied to the in-progress issue, and close the issue with a summary. The single action that closes the loop between a GitHub issue and a SKILL.md change.
 
-```bash
-# Check current status
-git status
+## State Dependencies
 
-# Stage and commit with auto-generated message
-git add memory/ .claude/memory/ outputs/ CLAUDE.md template.yaml 2>/dev/null || true
-git commit -m "Update agent state"
-```
+| Source | Location | Read | Write | Description |
+|--------|----------|------|-------|-------------|
+| GitHub Issues | Current repo | Yes | Yes | Close the in-progress issue |
+| Git working tree | ./ | Yes | Yes | Stage and commit skill files |
 
-## Workflow
+## Prerequisites
 
-### 1. Review Changes
+- `gh` CLI authenticated
+- Git repo with at least one commit (not bare)
+- Work is in-progress (a claimed issue exists) — or nothing is claimed and you just want a checkpoint commit (see Step 1)
 
-Analyze what files have been modified:
+## Process
 
-```bash
-git status
-git diff --cached --stat  # Staged changes
-git diff --stat           # Unstaged changes
-git log --oneline -5      # Recent commits for style reference
-```
-
-### 2. Stage Appropriate Files
-
-**Stage these directories:**
-- `memory/` - Agent's persistent state
-- `.claude/memory/` - Claude-specific memory
-- `outputs/` - Generated content
-- `CLAUDE.md` - Agent instruction updates
-- `template.yaml` - Configuration changes
-
-**NEVER stage these files:**
-- `.mcp.json` - Contains credentials
-- `.env` - Contains credentials
-- `*.log` - Temporary logs
-- Any files with API keys or secrets
+### Step 1: Find the In-Progress Issue
 
 ```bash
-git add memory/ .claude/memory/ outputs/ CLAUDE.md template.yaml 2>/dev/null || true
+gh issue list --label "status:in-progress" --state open --json number,title,body,labels --limit 5
 ```
 
-### 3. Create Commit
+If an issue number was passed as `$ARGUMENTS`, use that instead.
 
-If user provided a message via arguments, use that. Otherwise, analyze changes and create a descriptive message:
+If multiple in-progress issues, ask which one this commit closes.
 
-**Good commit message examples:**
-- "Update schedule.json with 5 new LinkedIn posts"
-- "Add memory context from content planning session"
-- "Update CLAUDE.md with new workflow documentation"
+**No in-progress issue and no argument → checkpoint mode.** Do not stop: stage the changed agent files (Step 3), compose the message from the diff (`Update agent state: <what changed>`), commit, and report the sha. Skip the issue close in Step 5. This keeps `/commit` usable as a plain save when the agent is not running the issue workflow.
 
-**Format guidelines:**
-- Keep subject line under 72 characters
-- Summarize what was accomplished (the "why")
-- Use conventional commit format if appropriate
+### Step 2: Check for Changes
 
 ```bash
-git commit -m "Your message here"
+git status --short
 ```
 
-### 4. Show Results
+Surface all modified, added, or deleted files. Flag anything that is NOT a SKILL.md or agent configuration file (CLAUDE.md, template.yaml) — confirm the user wants to include it.
 
-After committing, report:
-- The commit hash
-- Summary of what was committed
-- Any files that were intentionally skipped
+If there are no changes at all: report "Nothing to commit. Did `/adjust-playbook` or `/create-playbook` run yet?"
 
-## Commit Message Examples
+### Step 3: Stage Files
 
-| Change Type | Message Example |
-|-------------|-----------------|
-| Schedule updates | "Update schedule.json with 5 new LinkedIn posts" |
-| Memory updates | "Add memory context from content planning session" |
-| Config changes | "Update CLAUDE.md with new workflow documentation" |
-| State sync | "Trinity sync: YYYY-MM-DD HH:MM:SS" |
-| Multi-file | "Update agent state: schedule, replies, memory" |
+Stage all changed agent files:
+
+```bash
+git add .claude/skills/
+git add CLAUDE.md  # if modified
+```
+
+If other files were modified, confirm before staging.
+
+Show the staged diff summary:
+
+```bash
+git diff --cached --stat
+```
+
+### Step 4: Compose Commit Message
+
+Derive the commit message from the issue:
+
+- If the issue has a `skill:*` label: `[$SKILL_NAME]: $SHORT_DESCRIPTION (closes #$NUMBER)`
+- If project-level: `[agent]: $SHORT_DESCRIPTION (closes #$NUMBER)`
+- Short description = condensed version of issue title (lowercase, imperative)
+
+Examples:
+- `[adjust-playbook]: detect breaking interface changes (closes #14)`
+- `[work-loop]: route skill issues by label (closes #3)`
+- `[agent]: update onboarding section in CLAUDE.md (closes #1)`
+
+Show the message and ask for confirmation or edits.
+
+### Step 5: Commit
+
+```bash
+git commit -m "$(cat <<'EOF'
+$COMMIT_MESSAGE
+EOF
+)"
+```
+
+### Step 6: Close the Issue
+
+Add a completion comment:
+
+```bash
+gh issue comment $NUMBER --body "## Completed
+
+$SUMMARY_FROM_DIFF
+
+Committed: \`$COMMIT_SHA\`
+
+---
+*Closed via /commit*"
+```
+
+Update labels and close:
+
+```bash
+gh issue edit $NUMBER --remove-label "status:in-progress" --add-label "status:done"
+gh issue close $NUMBER --reason completed
+```
+
+### Step 7: Confirm
+
+```
+## Committed and Closed
+
+Commit: $COMMIT_SHA
+Issue: #$NUMBER closed — $TITLE
+
+Next: `/backlog` or `/claim` for the next issue.
+```
+
+## Outputs
+
+- Git commit with issue-linked message
+- Issue labeled `status:done` and closed
+- Summary comment on the issue
 
 ## Error Handling
 
-**No changes to commit:**
-- Show "Nothing to commit, working tree clean"
-- Don't create empty commits
-
-**Sensitive files detected:**
-- Warn user if staging .env, .mcp.json, or credential files
-- Do NOT commit without explicit approval
-
-**Commit fails:**
-- Show error message
-- Suggest checking git status
+| Error | Action |
+|-------|--------|
+| Nothing staged | Report, ask if /adjust-playbook ran |
+| No in-progress issue | Ask for issue number |
+| Commit fails | Show error, do not close issue |
+| Issue close fails | Report — commit already done, close manually |

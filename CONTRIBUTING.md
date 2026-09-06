@@ -17,7 +17,8 @@ Instances pin this repo **to a release tag**, never a branch head:
 - **Flat, always**: `skills/<name>/SKILL.md`. The platform's sync walks exactly one level — nested directories are invisible. The root is declared in `catalog.yaml` (`skills_root:`); Trinity resolves it per source (probe order `catalog.yaml` → `skills/` → `.claude/skills/`, trinity-enterprise#332).
 - Names: lowercase kebab-case, `^[a-z0-9][a-z0-9-]{0,63}$`, named the way they're invoked (`/one-pager`).
 - **No version suffixes** (`-v2`) — the name is the invocation surface and the platform's assignment key. Versioning lives in frontmatter and tags (below). A rewrite that changes what a skill fundamentally *is* earns a new descriptive name, and the old skill retires via `deprecated:`.
-- Family prefixes only for real families (e.g. `add-*` = agent-capability installers). No artificial taxonomy prefixes.
+- Family prefixes only for real families (e.g. `project-*` = the project-management set). No artificial taxonomy prefixes.
+- **Runtime skills, not installers.** A library entry is something an agent is *assigned* and *runs*; the platform re-injects it whenever the library updates, so the agent never holds a stale copy. Installers that write copies of skills into an agent's repo (`add-*` wizards) are marketplace tooling — they retire from here via `deprecated:`, and the skills they used to embed are promoted individually. Per-agent configuration a skill needs (e.g. `PROJECT_STANDARD.md`) belongs in the agent's repo; the skill ships its template and self-heals a missing file on first run.
 
 ## Categories
 
@@ -30,6 +31,7 @@ Every skill declares `category:` from this enum (CI-enforced):
 | `documents-and-data` | Extraction, indexing, transformation of files and data |
 | `research-and-analysis` | Gathering and judging external information |
 | `workspace` | Git, hygiene, self-diagnostics, skill authoring |
+| `project-management` | Backlogs, task registries and the project lifecycle — GitHub Issues as the shared ledger |
 
 The enum lives in `catalog.yaml` (`categories:`) — the validator reads it from there. Extending it is a PR to `catalog.yaml` and this file together.
 

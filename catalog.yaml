@@ -10,6 +10,7 @@ categories:   # every skill's `category:` frontmatter comes from this enum
   documents-and-data: "Extraction, indexing, transformation of files and data"
   research-and-analysis: "Gathering and judging external information"
   workspace: "Git, hygiene, self-diagnostics, skill authoring"
+  project-management: "Backlogs, task registries and the project lifecycle — GitHub Issues as the shared ledger"
 
 providers:    # canonical env key per credential provider (rules in CONTRIBUTING.md)
   github: GITHUB_TOKEN

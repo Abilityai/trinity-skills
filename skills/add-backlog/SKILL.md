@@ -3,13 +3,15 @@ name: add-backlog
 description: Add GitHub Issues backlog workflow to any agent — creates the full development cycle (backlog, claim, close, groom, roadmap, autoplan, commit, sprint, work-loop)
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 user-invocable: true
+deprecated: true
+superseded-by: backlog
 metadata:
-  mirror: "abilities@ddf0420 plugins/agent-dev/skills/add-backlog"
-  version: "2.0"
+  version: "2.1"
   created: 2026-04-14
   updated: 2026-04-28
   author: Ability.ai
   changelog:
+    - "2.1: RETIRED from the library (2026-09-06) — installers that write unmaintained copies of skills into an agent are marketplace tooling, not library skills. Assign the nine workflow skills it used to embed (backlog, roadmap, groom, claim, autoplan, close, commit, sprint, work-loop) from this library instead; the platform keeps assigned skills current. This entry is no longer mirrored from abilities and will be removed at the next minor tag"
     - "2.0: Full skill set — added groom, roadmap, autoplan, commit, sprint; renamed pick-work→claim, close-work→close"
     - "1.0: Initial version with backlog, pick-work, close-work, work-loop"
 category: agent-development
