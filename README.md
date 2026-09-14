@@ -65,7 +65,6 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
 | `animated-explainer` | 1.26 | library | Build an animated, data-driven explainer film for a real system — a canvas film that renders live from the product's own data and cannot dri |
-| `canvas` | 1.0 | library | Render designed, live-updating surfaces on your Trinity canvas — dashboards, reports with figures, status boards — from data blocks, the pla |
 | `create-explanatory-image` | 1.1 | library | Generate explanatory diagrams and infographics that visually communicate concepts |
 | `explain-visually` | 1.1 | library | Explain a complex topic back to you with visuals - the right diagram for each facet (flowchart, timeline, sequence, schema/ER, state machine |
 | `microsite` | 1.5 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
