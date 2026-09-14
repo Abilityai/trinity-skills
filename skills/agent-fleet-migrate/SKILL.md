@@ -5,12 +5,13 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Skill, AskUserQuestion
 user-invocable: true
 argument-hint: "[report.md | report.json | fleet-path ...] [--target dir]"
 metadata:
-  mirror: "abilities@19e8f1f plugins/agent-dev/skills/agent-fleet-migrate"
-  version: "1.1"
+  mirror: "abilities@f84bbce plugins/agent-dev/skills/agent-fleet-migrate"
+  version: "1.2"
   created: 2026-07-30
   updated: 2026-07-30
   author: Ability.ai
   changelog:
+    - "1.2: Missing-knowledge-brain next-action points at /create-agent:custom — the kb-agent wizard was retired (create-agent 2.0.0, 2026-09-14)"
     - "1.1: Deploy gate is repository-first — each migrated agent gets a GitHub repo as its final migration step (gh repo create --source=. --push) so /trinity:onboard deploys by cloning it and deploy_system can name it as template: github:Org/repo; names the instance GitHub token (Settings → GitHub token, Contents: Read) as the read prerequisite, and requires repo-less agents to be recorded in the report with what the local-file fallback costs"
     - "1.0: Initial version — execute the agent-fleet-analysis work order: non-destructive copies, per-paradigm logic extraction (n8n / framework / freeform), composed marketplace fixes, per-agent review gate + maturity re-score, capability coverage matrix, gated deploy handoff"
 category: agent-development
@@ -206,7 +207,7 @@ After the per-agent loop, execute the fleet-scoped `upgrade_paths` entries **tha
 - Hub designation → **Invoke `/agent-dev:add-orchestrator`** on the migrated hub copy.
 - Canon layer (when the work order recommends it) → **Invoke `/agent-dev:add-canon`**.
 
-Entries that require an interactive interview (e.g. `create-agent:kb-agent` for a missing knowledge brain) are **not run autonomously** — they land in the report's next-actions list with the exact command, so the operator runs them with the interview they deserve.
+Entries that require an interactive interview (e.g. `create-agent:custom` for a missing knowledge brain) are **not run autonomously** — they land in the report's next-actions list with the exact command, so the operator runs them with the interview they deserve.
 
 ## Step 6: Re-Score
 
