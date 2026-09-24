@@ -3,6 +3,7 @@ name: update-dashboard
 description: Refresh an agent's business metrics in one pass — compute every metric declared in template.yaml metrics:, refresh dashboard.yaml, and record the same numbers as points via Trinity's record_metrics so they build a real time series. One playbook, both surfaces; safe to run locally.
 category: workspace
 user-invocable: true
+automation: autonomous
 disable-model-invocation: false
 argument-hint: "[--dry-run]"
 allowed-tools:
@@ -15,10 +16,11 @@ allowed-tools:
   - mcp__trinity__record_metrics
   - mcp__trinity__refresh_metric_definitions
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-09-22
   author: Ability.ai
   changelog:
+    - "1.1: Declare `automation: autonomous` — the playbook never asks (its `allowed-tools` carry no AskUserQuestion), and a schedule verifier that keys on the declaration flagged it as gated on every fleet it landed on (corbin pilot, trinity-enterprise#681, 2026-09-22). Frontmatter only; no behaviour change."
     - "1.0: Initial version — the generic runtime half of trinity-enterprise#482. Reads the agent's own template.yaml metrics: block, computes one value per declared metric from a declared x-source: recipe (or the agent's evidence), refreshes dashboard.yaml when present, records the batch via record_metrics (identity metric+ts+dims, execution_id replay, metric_undeclared → refresh_metric_definitions once), and degrades to the file write off Trinity. No kpi_snapshot report: the metric store is the history (ent#476 ruling 2026-09-21). Platform contract: ent#477 registry / ent#478 write / ent#479 read, merged 2026-09-22"
 ---
 
