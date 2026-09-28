@@ -11,6 +11,7 @@ categories:   # every skill's `category:` frontmatter comes from this enum
   research-and-analysis: "Gathering and judging external information"
   workspace: "Git, hygiene, self-diagnostics, skill authoring"
   project-management: "Backlogs, task registries and the project lifecycle — GitHub Issues as the shared ledger"
+  role-companions: "Role companions — the role pack a seat's companion runs on, and the brain side of the learning loop"
 
 providers:    # canonical env key per credential provider (rules in CONTRIBUTING.md)
   github: GITHUB_TOKEN
@@ -18,3 +19,27 @@ providers:    # canonical env key per credential provider (rules in CONTRIBUTING
   replicate: REPLICATE_API_TOKEN
   elevenlabs: ELEVENLABS_API_KEY
   vercel: VERCEL_TOKEN
+
+# Skill sets (ent#510) — a named family of this library's own skills, assigned to an agent in one act
+# (`set:<name>`) and kept current as a unit by the platform (ent#530). Schema = the platform parser's:
+# short form `<set>: [skills]`, or long form {skills, requires: {env}, schedules}. Schedules are
+# SUGGESTIONS shown next to the set — the platform never creates them; each message is a one-line
+# playbook call. tools/validate.py holds these to the platform's rules (CONTRIBUTING.md § Skill sets).
+sets:
+  role-pack:
+    description: "The role pack every role companion carries: load the seat, brief its human, capture feedback, record decisions, and take part in the learning loop."
+    skills: [role-context, daily-brief, capture-feedback, record-decision, report-observation, adopt-lesson]
+    schedules:
+      - name: "Daily brief (address it to the primary human; the brief is held while the seat is calibrating)"
+        cron: "30 7 * * 1-5"
+        message: /daily-brief
+      - name: "Weekly observation"
+        cron: "0 16 * * 5"
+        message: /report-observation
+  learning-brain:
+    description: "The brain side of the learning loop — observation intake and weekly synthesis per role family."
+    skills: [synthesise-lessons]
+    schedules:
+      - name: "Weekly synthesis (one per role family: add --role-family <role-id>)"
+        cron: "0 6 * * 1"
+        message: /synthesise-lessons
