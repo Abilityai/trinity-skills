@@ -20,6 +20,18 @@ Instances pin this repo **to a release tag**, never a branch head:
 - Family prefixes only for real families (e.g. `project-*` = the project-management set). No artificial taxonomy prefixes.
 - **Runtime skills, not installers.** A library entry is something an agent is *assigned* and *runs*; the platform re-injects it whenever the library updates, so the agent never holds a stale copy. Installers that write copies of skills into an agent's repo (`add-*` wizards) are marketplace tooling — they retire from here via `deprecated:`, and the skills they used to embed are promoted individually. Per-agent configuration a skill needs (e.g. `PROJECT_STANDARD.md`) belongs in the agent's repo; the skill ships its template and self-heals a missing file on first run.
 
+## Library or agent skill? — the rubric
+
+Before proposing a skill here, ask one question:
+
+> **Would you want this skill, unchanged, in another company tomorrow?**
+
+- **Yes → it belongs in this library.** It is a procedure: how to build a deck, reconcile a backlog, brief a person. It holds no company's facts, names no company's systems beyond the credential keys it declares, and is equally correct for any fleet that assigns it.
+- **No → it is an agent skill.** It encodes one organisation's facts, thresholds, pipeline, tone or people. It lives in that agent's own `.claude/skills/`, and the facts it leans on belong in that fleet's canon (see `canon:` below), not in a SKILL.md.
+- **Mixed → split it.** The generic procedure comes here; the company-specific configuration stays in the agent's repo and is read at run time (the per-agent configuration rule under *Layout & naming*). A skill that needs a company's facts to be correct reads them; it never embeds them.
+
+When a skill improves, the rubric decides where the change lands. A fix that would be the same in every company is a PR here, so it reaches every agent that carries the skill. A fix that only holds for one company's conditions stays in that agent.
+
 ## Categories
 
 Every skill declares `category:` from this enum (CI-enforced):
@@ -59,6 +71,15 @@ Rules:
 - `requires:` is **exhaustive and honest**. CI cross-checks every env name referenced in the skill's body and scripts against `requires.env` — both directions: an undeclared reference fails, and a declared-but-unused key fails. The platform probes these keys at injection and warns the agent when one is missing, so an undeclared key is a silent runtime failure.
 - Optional lifecycle keys: `deprecated: true` and `superseded-by: <name>` — how a skill retires. Deprecated skills are removed at the next major tag.
 - Mirrored skills carry `metadata.mirror: "abilities@<sha> <path>"` (see below).
+- **`canon:` — the shared truth a skill reads.** A skill that reads a fleet's canon (the shared canonical-data repo: roles, objectives, the domain map and the facts each agent publishes) declares exactly which domains it needs, by their ids in the canon's `domains.yaml`:
+
+  ```yaml
+  canon: [org-context, icp-model]
+  ```
+
+  It is a declaration of need, not a permission — the canon is readable by every agent in the fleet — so context loading is explicit and reviewable instead of discovered at run time. Omit the key when the skill reads no canon. The validator checks the shape only (a non-empty list of lowercase kebab-case ids, no duplicates); whether a domain exists is the consuming fleet's canon, which this repo cannot see.
+
+  **Parser note:** `canon:` is not part of the Trinity platform's skill contract. The platform's frontmatter parser (`skill_packaging.extract_contract`) is tolerant and ignores keys it does not know, which is what makes this field free today. If that parser is ever made strict, it would reject every skill carrying `canon:` — so a strict parser must allowlist `canon` first. CI's platform-parity step (below) is where that break would surface.
 - Unknown keys are tolerated by the platform parser, but don't invent fields — propose them here first.
 - **Callable as one line.** A library skill may be invoked by a schedule, an orchestrator, or another agent as a single `/name [args]` message (the fleet's playbook-call convention). It must therefore run correctly from that one line: declare its inputs in `argument-hint`, and if it has approval gates, declare and implement a headless mode (`--autonomous`) — a gated skill invoked unattended blocks on a prompt nobody sees. The SKILL.md is the contract; no input/output schema is required.
 

@@ -37,6 +37,9 @@ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 MIRROR_RE = re.compile(r"^abilities@[0-9a-f]{7,40} \S+$")
 VERSION_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")
+# `canon:` entries are domain ids from the canon's domains.yaml map —
+# lowercase kebab-case, the same shape as a skill name.
+CANON_DOMAIN_RE = NAME_RE
 
 # Platform injection caps — skill_packaging.py @ Abilityai/trinity dev 3f1d4c89
 SKILL_MAX_BYTES = 10 * 1024 * 1024
@@ -275,6 +278,21 @@ def validate_skill(d):
     mirror = meta.get("mirror")
     if mirror is not None and not (isinstance(mirror, str) and MIRROR_RE.match(mirror)):
         fail("mirror", "metadata.mirror must be 'abilities@<sha> <path-in-abilities>'")
+
+    # Optional `canon:` — the canon domains the skill reads (CONTRIBUTING.md,
+    # "Frontmatter contract"). Shape only: whether a domain exists is the
+    # consuming fleet's canon, which this repo cannot see.
+    if "canon" in fm:
+        canon = fm.get("canon")
+        if not isinstance(canon, list) or not canon:
+            fail("canon", "canon: must be a non-empty list of domain ids, e.g. [org-context] (omit the key if the skill reads no canon)")
+        else:
+            bad = [c for c in canon if not isinstance(c, str) or not CANON_DOMAIN_RE.match(c)]
+            if bad:
+                fail("canon", f"canon: domain ids must be lowercase kebab-case ({CANON_DOMAIN_RE.pattern}): {bad!r}")
+            dupes = sorted({c for c in canon if isinstance(c, str) and canon.count(c) > 1})
+            if dupes:
+                fail("canon", f"canon: duplicate domain ids: {dupes!r}")
 
     declared = []
     req = fm.get("requires")
