@@ -16,10 +16,10 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `add-git-sync` | 1.3 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
 | `add-memory` | 1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
 | `add-pipeline` | 1.8 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
-| `adjust-playbook` | 1.12 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
+| `adjust-playbook` | 1.13 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
 | `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
-| `create-playbook` | 2.18 | mirrored · abilities | Create a new skill or playbook |
+| `create-playbook` | 2.19 | mirrored · abilities | Create a new skill or playbook |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data
