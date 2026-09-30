@@ -13,17 +13,13 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
-| `add-backlog` | 2.1 | library | Add GitHub Issues backlog workflow to any agent — creates the full development cycle (backlog, claim, close, groom, roadmap, autoplan, commi |
-| `add-canon` | 1.7 | library | Give any agent a shared canonical-data layer — installs /canon-publish (commit this agent's own folder in the fleet's shared canon repo), /c |
 | `add-git-sync` | 1.3 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
 | `add-memory` | 1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
-| `add-orchestrator` | 1.32 | library | Make any agent a system-aware orchestrator — installs /discover-agents (discover the fleet from live Trinity and/or a repo list into a descr |
-| `add-pipeline` | 1.7 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
-| `add-project-management` | 1.5 | library | Install cross-actor project management into this agent — GitHub Issues as single source of truth, uniform task anatomy with approval-ready c |
+| `add-pipeline` | 1.8 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
 | `adjust-playbook` | 1.12 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
-| `agent-fleet-analysis` | 2.4 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
+| `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
-| `create-playbook` | 2.17 | mirrored · abilities | Create a new skill or playbook |
+| `create-playbook` | 2.18 | mirrored · abilities | Create a new skill or playbook |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data
