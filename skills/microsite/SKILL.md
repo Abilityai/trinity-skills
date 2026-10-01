@@ -12,10 +12,11 @@ requires:
   binaries: [python3]
   packages: [playwright]
 metadata:
-  version: "1.5"
+  version: "1.6"
   created: 2026-07-29
   author: Ability.ai
   changelog:
+    - "1.6: Field lessons folded back from the authoring copy (library becomes the single source) - (a) density pass: new Step 3b + page_templates.md §10 (takeaway first, one row per item, one home per fact, no sentences about the document, verbatim zones protected, word budget measured BEFORE promising a cut); check_page.py now reports words per section + words_total; long review documents may exceed 6-10 sections when a sticky block-index rail (§4) carries navigation; new grammar S14 takeaway bar, S15 field-list item, S16 stage matrix, provenance chips. (b) count-up is for magnitudes, not precision - render four-decimal figures literally; a hero scrim radial can erase the canvas it covers (§6). (c) troubleshooting rows: lazy-loaded images read as broken by the checker, 390px layout traps (nowrap caption chips, nested grids, nested-table min-widths, flex headers), SVG annotation collisions, multi-scope Vercel accounts (--scope), hero-canvas node labels drifting over the headline"
     - "1.5: Promoted to the public trinity-skills library — brand-neutralized (page_templates.md §0 makes the palette a swappable DEFAULT and defers to the consuming workspace's own design doc; the discipline rules stay locked), --share made headless-capable via VERCEL_TOKEN, Drive delivery removed, skill-relative script paths, sibling-skill references made optional, declared requires:/argument-hint + cold-start behavior"
     - "1.4: Print trap - .count spans print as $0 (observer-gated); every count-up needs a print-only .pn twin with the final value (recipe in page_templates.md §7)"
     - "1.3: Canvas trap documented in page_templates.md §6 - absolutely-positioned canvas needs explicit width/height:100% (replaced element stays at intrinsic 300x150 under inset:0 alone; symptom: drawing huddles top-left)"
@@ -160,7 +161,33 @@ needs semantic concept colors (≥3 recurring concepts) or stays red+grayscale.
 
 Mark every fact the source doesn't supply as `[NEEDS: ...]`. Keep 6-10 sections; if the
 plan exceeds that, cut the weakest - a microsite that scrolls forever is a document that
-should have been a `/one-pager`.
+should have been a `/one-pager`. **Exception - long review documents** (a strategy, an
+audit, a report whose caller requires every block to stay visible): more sections are
+allowed when a sticky block-index rail carries the navigation (`page_templates.md` §4) and
+the density pass below is applied. Say which rule you are using in the Gate 1 plan.
+
+### Step 3b: Density pass (any page built from long prose)
+
+When the source is a long document rather than raw data, plan the *edit*, not just the
+layout. The reader's complaint on long pages is "water": the same fact said three times,
+findings written as essays, sentences about the document itself. Apply
+`page_templates.md` §10:
+
+1. **Takeaway first.** Each section opens with one bold sentence saying what the reader
+   should conclude or do (S14). It replaces the closing "therefore/in summary" paragraph -
+   never both.
+2. **One row per item.** Findings, competitors, messages, measures become table rows or
+   field lists (S15): the claim with its numbers | what we do | source. A "meaning" line
+   that restates the finding folds into the finding's headline.
+3. **One home per fact.** A rule or clearance lives in exactly one section; everywhere else
+   points to it instead of restating it.
+4. **Cut sentences about the document** ("none of this is padding", "here is the explicit
+   decision you asked for", "status is not advisory").
+5. **Protect verbatim zones.** Quotes, endorsed wording, ready-to-use answers, headline
+   banks: never paraphrased to save words.
+6. **Measure before promising.** Count the source's words (or the previous render's, via
+   `check_page.py`) and the verbatim share *first*; quote a reduction target only on the
+   compressible remainder. Report the achieved number honestly at Gate 2.
 
 ### Step 4: [APPROVAL GATE 1 - PLAN + CONTENT] *(skipped with `--autonomous`)*
 
@@ -202,6 +229,10 @@ broken images). Fix and re-run until clean. Then **look at every section screens
 mechanical breakage; only eyes catch a cramped grid, an unreadable chart, a hero scrim
 that kills the canvas. Also re-check at mobile width:
 `check_page.py {slug}.html --width 390 --no-shots`.
+
+The report also carries `words` per section and `words_total` - use them for the density
+budget (Step 3b) and to spot the section that is still carrying water. The sticky nav
+appears overlaid mid-screenshot on tall sections; that is a capture artifact, not a bug.
 
 ### Step 8: [APPROVAL GATE 2 - VISUAL] *(skipped with `--autonomous`)*
 
@@ -247,7 +278,8 @@ final frame. Skim the PDF - it's a companion, but a broken companion still ships
 
 - [ ] Source was substantive; zero invented facts; `[NEEDS:]` gaps resolved (gated) or omitted + reported (autonomous)
 - [ ] Data interrogated - no section animates a number the data doesn't support
-- [ ] Section plan fits the grammar; 6-10 sections; semantic colors only if ≥3 bound concepts
+- [ ] Section plan fits the grammar; 6-10 sections (or the long-document exception with a block-index rail); semantic colors only if ≥3 bound concepts
+- [ ] Prose-sourced pages: density pass applied (takeaway first, one row per item, one home per fact, verbatim zones intact); word count before/after reported
 - [ ] Gate 1 approved (or `--autonomous`); `source.md` written
 - [ ] Page authored from the shared shell - not a bespoke shell; brand resolved per §0
       (workspace design doc if present, defaults otherwise)
@@ -269,6 +301,17 @@ final frame. Skim the PDF - it's a companion, but a broken companion still ships
 | Canvas insert misbehaves | Its reduced-motion static frame is the fallback: gate the rAF loop off and ship the still. A canvas is never allowed to break the page. |
 | PDF looks wrong | Fix the print stylesheet (§7), re-export. Don't hand-edit the PDF; don't let PDF needs distort the web page - the page is primary. |
 | `--inline` exceeds budget | Switch to `assets/` folder layout and say so. |
+| check_page.py reports broken_images but the files exist and open fine | Cause: `loading="lazy"` - the checker reads `naturalWidth` before any scroll, so below-fold images have legitimately not loaded. Remove `loading="lazy"`. A microsite carries a handful of images; eager decoding also means no pop-in while presenting. |
+| Overflow only at 390px, and the culprit is a label chip | A `white-space:nowrap` chip carrying a long caption is wider than the phone. Let caption chips wrap (`.cap .ch{white-space:normal}`); keep nowrap only for short tokens. Find the culprit with a `getBoundingClientRect().right > clientWidth` sweep that skips elements inside scroll containers. |
+| A table nested in a narrow column is cut off on the right | Its `min-width` (sized for full-width tables) exceeds the column, so it scrolls inside the card. Give nested tables a smaller min-width class (~520px) and let them wrap; reserve 720-1000px min-widths for full-width tables. |
+| A card header with a count chip spills out of the card | `display:flex` header without `flex-wrap:wrap`; the chip cannot drop to its own line. Add `flex-wrap:wrap` and a row gap. |
+| A grid nested inside a grid column overflows on mobile | The inner grid's implicit column sizes to content. Declare `grid-template-columns:minmax(0,1fr)` on the inner grid. |
+| The page reads as padded even though every section is on-grammar | Density failure, not layout: run the Step 3b pass - move each section's conclusion to the top, turn prose findings into rows, give every repeated rule one home, and check `words` per section for the heaviest offenders. |
+| Hero canvas looks blank/empty (rAF loop is fine) | The scrim is erasing it - a radial that hits `var(--bg)` by 72% wipes the off-centre composition. Re-layer per `page_templates.md` §6; verify on the hero screenshot, not the checker. |
+| A KPI screenshot shows a number that is not the real value | Count-up mid-flight. Fine for magnitudes, wrong for precision figures - render four-decimal values literally (§6). |
+| An SVG annotation overlaps a bar | Move the label into empty plot space with a leader line rather than nudging it along the same axis; a first relocation that stays on the collision axis usually still collides. |
+| Hero canvas labels sit on top of the headline or are cut off at the right edge | Nodes placed on a free circle around an off-centre anchor spill into the text column and past the viewport. Clamp node x to `[W*0.58, W-70]` (asymmetric left/right radius) and centre labels above/below the node instead of left/right of it. Verify on the hero screenshot. |
+| share_vercel.py exits "multiple Vercel scopes" | The account belongs to several Vercel teams/scopes; pass `--scope <your-scope>` and re-run. Not a failure of the page. |
 | Vercel share deploy fails | Check `VERCEL_TOKEN` (or `vercel whoami`) and the CLI install; retry once. The local page is still THE deliverable - report it delivered and the share as failed with the fix. Never block delivery on the share. |
 
 ## Related skills

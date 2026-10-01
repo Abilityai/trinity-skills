@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Generate images using Google's Nano Banana (Gemini 2.5 Flash Image)
-# Model: gemini-3.1-flash-image-preview (Nano Banana 2)
+# Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image)
+# Model: gemini-3.1-flash-image
+#
+# NOTE: prompts containing double quotes break this script's JSON payload.
+# Prefer scripts/generate_image.py (handles JSON escaping properly).
 # Cost: $0.067/image | Free: 500/day | Time: ~22 sec
 
 set -e
@@ -34,7 +37,7 @@ find_api_key() {
 
 # Configuration
 API_KEY=$(find_api_key)
-API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent"
+API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent"
 OUTPUT_DIR="${OUTPUT_DIR:-.}"
 
 if [ -z "$API_KEY" ]; then
@@ -74,7 +77,7 @@ fi
 # Ensure output directory exists
 mkdir -p "$OUTPUT_DIR_PATH"
 
-echo "Generating image with Nano Banana 2 (gemini-3.1-flash-image-preview)..."
+echo "Generating image with Nano Banana 2 (gemini-3.1-flash-image)..."
 echo "Prompt: $PROMPT"
 echo "Output: $FULL_OUTPUT_PATH"
 

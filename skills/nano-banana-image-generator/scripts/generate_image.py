@@ -64,7 +64,7 @@ def generate_image(prompt: str, output_path: str, aspect_ratio: str = "1:1") -> 
         print("Error: No API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY.")
         return False
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key={api_key}"
 
     payload = {
         "contents": [{

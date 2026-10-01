@@ -192,6 +192,40 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radi
   *{animation:none !important; transition:none !important} html{scroll-behavior:auto} }
 ```
 
+### Block-index rail (long documents, >10 sections)
+
+A top nav cannot hold 20+ links. Long review documents (strategies, audits) keep the top
+nav for the 3-5 *parts* and add a sticky left rail listing every block. Proven on a
+27-section strategy review page.
+
+```html
+<div class="wrap layout">
+  <aside class="rail" aria-label="Block index">
+    <div class="pt">A · Research</div>
+    <a href="#sources"><span>A0</span>Sources</a> <!-- one link per section -->
+  </aside>
+  <main><!-- header#hero, .part dividers, section.blk ... --></main>
+</div>
+```
+
+```css
+.layout{display:grid; grid-template-columns:196px minmax(0,1fr); gap:44px}
+aside.rail{position:sticky; top:70px; align-self:start; max-height:calc(100vh - 84px);
+  overflow-y:auto; padding:30px 0}
+.rail .pt{font-family:var(--mono); font-size:13px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--accent); margin:16px 0 6px}
+.rail a{display:block; font-size:13.5px; color:var(--ink-mute); text-decoration:none;
+  padding:4px 0 4px 10px; border-left:2px solid var(--line)}
+.rail a.active{color:var(--ink); border-left-color:var(--accent)}
+@media(max-width:1180px){ .layout{grid-template-columns:minmax(0,1fr)} aside.rail{display:none} }
+section.blk{padding:52px 0 50px}   /* dense pages: tighter than the 110px default */
+@media print{ aside.rail{display:none !important} .layout{display:block} }
+```
+
+Scrollspy drives two link sets: the rail by section id, the top nav by the `.part` the
+section sits under (walk the DOM once, map section id → nearest preceding `.part`). Keep
+the active rail link in view (`rail.scrollTop = link.offsetTop - rail.clientHeight/2`).
+
 ## 5. Section grammar
 
 Names align with `/one-pager` blocks (B1-B12) so content plans translate across media.
@@ -213,6 +247,10 @@ then ONE dominant element from this grammar. One idea per section; 6-10 sections
 | S11 | **Media frame** | B11 | Screenshots, product UI, generated imagery | `.frame`: browser-chrome bar (3 dots + mono URL) + `<img>`. Generated imagery = textless, style-consistent with the page, `filter:saturate(.92) brightness(.84)` |
 | S12 | **Tree / code** | — | File layouts, configs, commands | Mono `.treecard` rows: `white-space:pre` tree text + muted inline comment per row; horizontal scroll inside the card |
 | S13 | **CTA paths** | footer/CTA | End of page: what to do next | 2-up `.path` cards: mono label, `h3`, one-liner, `.btn.pri` (ink bg) / `.btn.sec` (outline). Last section before footer |
+| S14 | **Takeaway bar** | B7 | The conclusion of a section, stated FIRST | `.take` directly under the `h2` (and an optional mono `.srcline` for the section's sources): `border-left:3px solid var(--accent); background:var(--accent-soft); font-size:1.06rem; font-weight:500; max-width:88ch`. One or two sentences. Replaces the closing "therefore" paragraph - a section never has both |
+| S15 | **Field-list item** | B8 | A catalog where each item has the same named fields (formats with a ruling, tactics, risks) | Two-column row: left = mono number + `h3` + status badge (`.rul.take/.skip/.split` in `--ok/--risk/--warn`) + one-line subtitle; right = `<dl class="fd">` with mono uppercase `dt` (96px) and `dd` values. Items separated by hairlines, not cards. A nested table inside a `dd` uses a small min-width (§9) |
+| S16 | **Stage matrix** | B6 | A phased plan where every phase has the same attributes (what we announce / hooks / formats / watch / target) | S7 rail on top (dates + stage names; the current stage filled, future stages dashed) + a `table.stage`: rows = attributes (mono label column), columns = stages (header cell carries name + a `<small>` purpose line). Denser and more comparable than one card per stage |
+| — | **Provenance chips** | — | Marking where each claim comes from, inline | Small mono `.ch` tokens: teal `.e` (endorsed, e.g. `E5`), dashed grey `.c` (candidate/draft), amber `.ph` (open placeholder, text exactly as written); blue dotted links (`.s a`) for evidence sources placed beside the claim. Introduce the binding in the hero legend. Long caption chips must be allowed to wrap (§9) |
 
 **Composition defaults by preset** (starting points, not straitjackets):
 - `report` (daily/status): S1 compact hero → S3 KPIs → S8 finding → S10/S7 per topic → S12 details → S13 actions
@@ -274,6 +312,22 @@ pause when off-viewport (`IntersectionObserver` gating `requestAnimationFrame`).
 must render something meaningful as a still: the reduced-motion/print frame is a
 composition, not a blank. A canvas that needs a story arc (beats, camera, narration) is a
 film - invoke `/animated-explainer` instead and embed or link its output.
+
+**Count-up is for magnitudes, NOT for precision figures.** A 900ms count puts a *wrong
+number* on screen for most of a second. That is harmless on `741+` or `47%`, where the reader
+is absorbing a magnitude, and actively misleading on a four-decimal figure whose exact value
+is the claim - a `−0.0071` KPI was captured mid-flight reading `−0.0046`, which is a different
+finding. Rule: count-up on rounded percentages and counts; render `0.0331`-class figures
+literally (and drop their `.pn` twin with them, since there is no longer an observer to gate).
+Motion must explain something; a precision delta counting up explains nothing.
+
+**A hero scrim can erase the canvas it sits over.** The S1 recipe layers a gradient scrim
+between canvas and content, and a radial like `at 78% 30%, transparent 0%, var(--bg) 72%`
+goes fully opaque well before the edges - wiping out exactly the region where an off-centre
+composition lives (symptom: hero reads as empty space, canvas "not working" while the rAF
+loop is fine). Fix by layering: a radial that stays transparent through ~30% and only reaches
+`--bg` at 100%, plus a left-to-right wash protecting the text column, plus a bottom fade.
+Then *look at the hero screenshot* - `check_page.py` cannot see a blank canvas.
 
 **Hard rules:** reveal once, never re-hide on scroll-up · transitions ≤ 600ms · stagger
 ≤ 3 steps · no parallax on text · nothing teleports (a number counts, a bar grows, a
@@ -338,3 +392,35 @@ The KB page shipped at 3.2MB because every screenshot was base64-embedded. Defau
   a progress bar; `[NEEDS: ...]` gaps resolve before ship
 - The page reads top-to-bottom as a story WITHOUT any animation, imagery, or color
 - Footer stamps the data/canon date it was built from
+
+**Layout traps that pass on desktop and break at 390px:**
+
+- `white-space:nowrap` on a chip with a long caption → page-level overflow. Wrap caption
+  chips (`.cap .ch{white-space:normal}`); nowrap only for short tokens like `E5`.
+- A grid nested in a grid column sizes to its content → `grid-template-columns:minmax(0,1fr)`
+  on the inner grid.
+- Tables inside `.tw` scroll containers: full-width tables may carry `min-width:720-1000px`;
+  a table nested in a narrow column (inside a card or `dd`) gets ~520px or it is cut off
+  even on desktop. Print resets all min-widths to 0.
+- Flex headers that hold a count chip need `flex-wrap:wrap`, or the chip spills out of the card.
+
+## 10. Density - editing long content (the "less water" pass)
+
+A page built from a long document fails differently from a page built from data: every
+section is on-grammar, and the reader still says it is padded. The fix is editorial, and it
+happens in the plan (SKILL.md Step 3b), not in the CSS. Evidence: a 21-section strategy
+review page (16.1K words) re-cut to 27 sections at 11.6K words with no fact, source or
+placeholder dropped.
+
+| Water | Where it hides | Cut |
+|---|---|---|
+| The finding said four times | "Found / Meaning / We do" prose cards, then a "Therefore" paragraph | One table row: **headline + numbers** \| what we do \| sources. The takeaway (S14) goes on top |
+| The research summarised three times | findings → problem list → rules list | Keep each block if the caller requires it, but make the later ones one-liners that point back |
+| A rule repeated in every section | taboos, clearances, "never say X" | One home (a fence list / fact table); elsewhere a pointer ("fence 6") |
+| Sentences about the document | "none of this is padding", "as requested, here is...", "this is not advisory" | Delete |
+| Essay cells | long table cells that restate the column header | Telegraphic: lead with the noun, keep the number, drop the connective tissue |
+| Homepage-level source links | a news domain linking to its homepage | Deep link to the actual article from the evidence file - denser AND more credible |
+
+**Never compress:** endorsed or quoted wording, ready-to-use answers, headline banks,
+placeholders, source links. These are the "meat" by definition; count them before setting a
+word target (they were ~15% of the page above and made a 55% cut impossible).

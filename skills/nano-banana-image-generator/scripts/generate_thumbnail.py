@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate thumbnails using Gemini 2.5 Flash Image API.
+Generate thumbnails using the Gemini 3.1 Flash Image API (Nano Banana 2).
 Supports 16:9 aspect ratio for horizontal thumbnails (YouTube, etc.).
 
 Usage:
@@ -46,7 +46,7 @@ if not API_KEY:
     print("Error: No API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY.")
     sys.exit(1)
 
-URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={API_KEY}"
+URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key={API_KEY}"
 
 
 def generate_thumbnail(prompt: str, output_path: str, aspect_ratio: str = "16:9"):
