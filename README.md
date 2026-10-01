@@ -27,7 +27,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
 | `document-extractor` | 1.0 | library | Extracts key information from documents (PDFs, images, text files) in a folder and creates structured markdown summaries with the same filen |
-| `epub-chapter-extractor` | 1.0 | library | Extract all chapters from an EPUB file into separate markdown files |
+| `epub-chapter-extractor` | 1.1 | library | Extract all chapters from an EPUB file into separate markdown files |
 | `file-indexer` | 1.0 | library | Generate a comprehensive file system index with directory tree, file sizes, and modification dates |
 
 ### project-management
