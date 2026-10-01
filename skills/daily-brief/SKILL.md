@@ -39,8 +39,8 @@ Run `/role-context`. Keep its output — role, responsibilities, primary human, 
 For every entry in the role's `systems:` block decide **readable** or **not readable this period**:
 
 - its `identity` credential is not available to this agent (`list_available_credentials` / the agent's env) → not readable (`no credential <NAME>`);
-- a metric it `feeds` is `stale: true` in `get_objectives` (or `freshness: no_points`) → not readable (`<metric> stale since <last point>`);
-- a domain it `feeds` is stale per role-context → not readable (`<domain> stale since <date>`);
+- a metric in its `metrics` is `stale: true` in `get_objectives` (or `freshness: no_points`) → not readable (`<metric> stale since <last point>`);
+- a domain in its `domains` is stale per role-context → not readable (`<domain> stale since <date>`);
 - the companion's own read of it failed during the period (its run notes say so) → not readable, with the error class.
 
 Coverage = readable ÷ declared, as a percentage, with both counts. No `systems:` block → coverage `n/a — reach undeclared`. If `template.yaml` `metrics:` declares `seat_coverage`, record the number with `record_metrics` (percentage, 0–100) so it charts like any other measure (Tandem framework).

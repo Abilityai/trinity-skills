@@ -13,7 +13,7 @@ metadata:
   created: 2026-09-28
   author: Ability.ai
   changelog:
-    - "1.0: Initial version (ent#510, Tandem framework) — resolves x-role → roles/<id>.yaml (vacant → defaults_to), who fills the seat via get_agent_assignments (with role-drift flag), objectives via get_objectives (never re-derives a gap), the role's inputs + declared canon: domains through domains.yaml with freshness, the role's systems: block ( shape), open calibration notes (capture-feedback) and adopted lessons (adopt-lesson); prints one Role context block and names every source it could not read"
+    - "1.0: Initial version (ent#510, Tandem framework) — resolves x-role → roles/<id>.yaml (vacant → defaults_to), who fills the seat via get_agent_assignments (with role-drift flag), objectives via get_objectives (never re-derives a gap), the role's inputs + declared canon: domains through domains.yaml with freshness, the role's systems: block (the canon role-schema shape: id, direction, identity, authority, metrics, domains — ent#639), open calibration notes (capture-feedback) and adopted lessons (adopt-lesson); prints one Role context block and names every source it could not read"
 ---
 
 # Role Context
@@ -82,10 +82,14 @@ Read the role file's `systems:` block when present — one entry per system the 
 ```yaml
 systems:
   - id: hubspot
-    direction: read            # read | write
-    identity: HUBSPOT_TOKEN    # the credential NAME (vault), and under whose authority it was granted
-    feeds: {metrics: [mql_count], domains: [hubspot-pipeline]}
+    direction: read                # read | write
+    identity: HUBSPOT_TOKEN        # the vault credential NAME it reads with (also in `credentials`)
+    authority: paradigm-it-admin   # whose administrator granted that scope
+    metrics: [mql_count]           # metrics this system feeds
+    domains: [hubspot-pipeline]    # canon domains it feeds
 ```
+
+The shape is the canon role schema (`CONVENTIONS.md` → `roles/<role-id>.yaml` → `systems`, ent#639): one level of structure, so `metrics` and `domains` sit on the entry itself. Freshness and the unavailable state are never declared — `/daily-brief` reports them each period.
 
 Carry the list forward; `/daily-brief` decides which were readable this period. No `systems:` block → say so (`reach undeclared — coverage cannot be computed`); never infer systems from credentials.
 
