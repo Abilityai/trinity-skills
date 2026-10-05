@@ -23,11 +23,11 @@ Runs on the fleet's **brain** agent — the one role companions name in `x-role.
 
 **Write rule:** the brain writes **only its own canon folder** (`agents/<self>/lessons/`, `agents/<self>/receipts/`). It never edits an observation in another agent's folder — the reporting companion records the receipt on its own observation.
 
-Resolve `CANON` and `SELF` from `template.yaml` (`x-canon`) and pull (`git -C "$CANON" pull --ff-only`) before either mode.
+Resolve `CANON` and `SELF` from `template.yaml` (`x-canon`, block style — the same way `/role-context` does) and pull (`git -C "$CANON" pull --ff-only`) before either mode. `SELF` empty or not a plain folder name → stop: `x-canon.folder is not set` — never write under `agents//`, which is shared.
 
 ## Mode 1 — intake (`--intake <path>@<sha>`)
 
-Called by a companion's `/report-observation`. Read the observation at that sha (`git -C "$CANON" show <sha>:<path>`), then answer **exactly one** receipt:
+Called by a companion's `/report-observation`. The argument arrived over chat, so **validate its shape before using it**: split on the last `@`; the path must match `^agents/[a-z0-9][a-z0-9-]*/observations/[A-Za-z0-9._-]+\.yaml$` (no `..`) and the sha `^[0-9a-f]{7,40}$`. Anything else → receipt `rejected(malformed-reference)` and run nothing. Then read the observation at that sha, with both values quoted (`git -C "$CANON" show "$SHA:$OBS_PATH"`), and answer **exactly one** receipt:
 
 | Receipt | When |
 |---|---|
@@ -46,7 +46,7 @@ Scheduled weekly **per role family** (one schedule per family: `/synthesise-less
 
 ### Step 1: Gather
 
-All `$CANON/agents/*/observations/*.yaml` for the role family, received (or raw and well-formed) and not yet cited by a lesson. Drop `rejected` ones.
+All `$CANON/agents/*/observations/*.yaml` for the role family, received (or raw and well-formed) and not yet cited by a lesson — i.e. whose canon path (`agents/<name>/observations/<file>.yaml`) appears in no `evidence:` list under `$CANON/agents/$SELF/lessons/`. Drop `rejected` ones.
 
 ### Step 2: Group and grade
 
@@ -70,7 +70,10 @@ statement: "For ICP-A inbound leads, a 2-day first follow-up beats 5 days on rep
 applies_to:
   roles: [sales-lead]
   conditions: "inbound, ICP-A, no active promotion"
-evidence: [team-a/2026-09-24-followup-cadence, team-b/2026-09-26-fast-followup, team-c/2026-09-27-cadence]
+evidence:                         # canon paths of the observations — the lookup Step 1 uses
+  - agents/sales-a/observations/2026-09-24-followup-cadence.yaml
+  - agents/sales-b/observations/2026-09-26-fast-followup.yaml
+  - agents/sales-c/observations/2026-09-27-cadence.yaml
 confidence: high                  # low | medium | high
 status: draft                     # draft | canonical | superseded
 review_by: 2026-10-24             # drafts expire at the staleness bound
@@ -84,3 +87,11 @@ skill_change_request: null        # or {library_skill: <name>, pr: <url or null>
 ### Step 4: Publish and report
 
 Publish with `/canon-publish` (own folder). Reply with one line per role family: `<family>: <n> observation(s) → <k> draft lesson(s) (<ids>), <r> raw signal(s), <f> flagged`. Companions pick up new lessons through `/role-context` (`<n> new — /adopt-lesson`); the brain does not push them.
+
+## Error handling
+
+| Situation | Action |
+|---|---|
+| Intake reference fails the shape check | Receipt `rejected(malformed-reference)`; never pass it to `git` |
+| `SELF` empty (no `x-canon.folder`) | Stop; never write under `agents//…`, which is shared |
+| `/canon-publish` not available (not among this agent's skills) | Leave the lesson or receipt written in the local clone, uncommitted. Do **not** commit or push to the canon yourself. Reply `written locally, not published — /canon-publish unavailable` so the operator can install it |

@@ -25,7 +25,7 @@ The companion's proactive surface: **one brief per person per day**, objective-d
 ## Guards (before anything else)
 
 1. **Readiness.** Read `x-role.status` from `template.yaml`. `calibrating` and this is a scheduled run → stop with one line: `brief held — seat is calibrating (the owner flips it to ready after the walkthrough)`. The platform also holds a calibrating seat's brief schedule; this guard keeps a hand-made schedule from leaking one. `--preview` runs the full brief for the reviewer during calibration and says `PREVIEW — not delivered as a brief` on its first line.
-2. **One per person per day.** State file `.trinity/daily-brief/last.json` (`{"date": "YYYY-MM-DD", "period": "daily"}`). Already written today for the same period → stop: `already briefed today`. Other companions of the same person feed this one rather than sending their own (Tandem framework) — if a peer companion's note arrived for inclusion, it goes into section 6.
+2. **One per person per day.** State file `.trinity/daily-brief/last.json`, keyed by period (`{"daily": "YYYY-MM-DD", "weekly": "YYYY-MM-DD", …}`) so a `--weekly` run never clears the daily guard. This period's key already holds today's date → stop: `already briefed today`. A legacy single-slot file (`{"date", "period"}`) is read as `{<period>: <date>}`. Other companions of the same person feed this one rather than sending their own (Tandem framework) — if a peer companion's note arrived for inclusion, it goes into section 6.
 3. **Addressed.** A scheduled run with no person in its Execution Context (no seat it serves) → stop: `brief schedule is not addressed to a person — set deliver_to_workspace_email`.
 
 ## Process
@@ -72,7 +72,7 @@ Coverage: <readable>/<declared> systems (<pct>%) | n/a — reach undeclared
 
 ### Step 5: Record and reply
 
-Write `.trinity/daily-brief/last.json` (today, period), then reply with the brief. Nothing else goes in the reply.
+Set this period's key in `.trinity/daily-brief/last.json` to today (keep the other periods' keys), then reply with the brief. Nothing else goes in the reply.
 
 ## Error handling
 

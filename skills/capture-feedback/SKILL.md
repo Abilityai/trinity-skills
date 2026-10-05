@@ -29,7 +29,7 @@ Turn "that was wrong" into something the seat learns from. Every capture becomes
 
 ### Step 1: Load the seat
 
-Run `/role-context --quiet`. Resolve `CANON` and `SELF` from `template.yaml` (`x-canon.clone_path`, `x-canon.folder`) the same way it does. No canon clone → stop and point at `/canon-doctor`.
+Run `/role-context --quiet`. Resolve `CANON` and `SELF` from `template.yaml` (`x-canon.clone_path`, `x-canon.folder`) the same way it does. No canon clone → stop and point at `/canon-doctor`. `SELF` empty → stop (role-context already refuses it); never write under `agents//`.
 
 ### Step 2: Structure the feedback
 
@@ -85,6 +85,8 @@ Publish with `/canon-publish` (own folder, lint-gated). Reply in one or two line
 | Situation | Action |
 |---|---|
 | No canon clone | Stop — `/canon-doctor` |
+| `SELF` empty (no `x-canon.folder`) | Stop — `/role-context` refuses it; never write under `agents//…`, which is shared |
+| `/canon-publish` not available (not among this agent's skills) | Leave the entry written in the local clone, uncommitted. Do **not** commit or push to the canon yourself. Reply `written locally, not published — /canon-publish unavailable` so the operator can install it |
 | The person is vague | One clarifying question, then capture what you have — never drop it |
 | Same output already reported (by you or by the platform's rating flow) | Capture the entry; do not raise a second alert |
 | `/canon-publish` refuses (lint) | Fix the entry's fields and re-run; never leave feedback only in chat |

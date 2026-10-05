@@ -4,7 +4,7 @@ description: "At the end of a cycle, write what this seat tried and what it meas
 category: role-companions
 allowed-tools: Read, Write, Bash, Glob, Grep, Skill, mcp__trinity__get_metrics, mcp__trinity__chat_with_agent
 user-invocable: true
-argument-hint: "[<existing observation path>] | <what changed, in words>"
+argument-hint: "[<existing observation path> | <what changed, in words>]  (no argument = scheduled cycle scan)"
 requires:
   binaries: [git]
 metadata:
@@ -21,11 +21,17 @@ metadata:
 
 The up-flow of the learning loop (Tandem framework): **companion → observation → brain**. An observation is evidence, not advice — what this seat did, and the measured change it made, under stated conditions. The brain decides whether it corroborates anything; a single observation never becomes a lesson on its own.
 
+## Calling modes
+
+- **`<what changed, in words>`** — a person describes the change; build one observation from it (Steps 2–5).
+- **`<existing observation path>`** — re-run Steps 4–5 for an observation already written (e.g. its brain hand-off failed).
+- **No argument** — the weekly scheduled call (`/report-observation` in the `role-pack` set). Nobody is present to answer, so **never ask a question**. Scan the cycle since this seat's newest observation (or the last 7 days when there is none): this companion's own recorded work — its run notes, `/record-decision` records, and adopted lessons it applied — joined to the objectives' metrics. Build an observation (Steps 2–4) for each concrete action that passes Step 2's checks, **at most three per run**, skipping any action an existing observation already covers. When none qualifies, write nothing and reply with one line: `No reportable observation this cycle — <reason>` (e.g. `no action with a measured before/after`, `objectives unavailable`). A refusal in this mode goes into that line, not to "the person".
+
 ## Process
 
 ### Step 1: Load the seat
 
-Run `/role-context --quiet`. Keep `role`, the team (the agent's `team:` tag or the role file's context), the objectives, and `x-role.brain`. No brain declared → still write and publish the observation, and say `no brain declared (x-role.brain) — the observation waits in canon for one`.
+Run `/role-context --quiet` (it stops on an empty `SELF` — never write under `agents//`). Keep `role`, the team (the agent's `team:` tag or the role file's context), the objectives, and `x-role.brain`. No brain declared → still write and publish the observation, and say `no brain declared (x-role.brain) — the observation waits in canon for one`.
 
 ### Step 2: Build the observation
 
@@ -42,7 +48,7 @@ Required, and each is **checked, not assumed**:
 | `context` | the local conditions (team size, tooling, season, promotions running…) — the brain keeps them on any lesson |
 | `confidence_local` | `low` · `medium` · `high` — the seat's own view |
 
-**Refuse, with a reason, and write nothing** when the before/after cannot be measured, the window or n is unknown, or the claim is prose only ("it felt faster"). Tell the person what measurement would make it reportable. The brain rejects such reports at intake anyway (Tandem framework); refusing here keeps the canon clean.
+**Refuse, with a reason, and write nothing** when the before/after cannot be measured, the window or n is unknown, or the claim is prose only ("it felt faster"). Tell the person what measurement would make it reportable (in a no-argument run, put it in the one-line reply instead). The brain rejects such reports at intake anyway (Tandem framework); refusing here keeps the canon clean.
 
 An objective the role files mark ruin-class (compliance, safety, money — the objective's `notes` or the role's) → add `urgent: true`; the brain reviews it the same day.
 
@@ -72,7 +78,7 @@ urgent: false
 status: raw                       # raw | received | synthesised | rejected — the brain's receipt moves it
 ```
 
-Publish with `/canon-publish` (own folder, lint-gated). Keep the resulting `canon@<sha>`.
+Publish with `/canon-publish` (own folder, lint-gated). Keep the resulting `canon@<sha>`. `/canon-publish` not available → leave the file written in the local clone, uncommitted; do **not** commit or push to the canon yourself; skip Step 4 (the brain needs a published sha) and confirm with `written locally, not published — /canon-publish unavailable`.
 
 ### Step 4: Hand it to the brain
 
@@ -83,3 +89,12 @@ Brain unreachable → leave `status: raw`; the brain's weekly synthesis reads ev
 ### Step 5: Confirm
 
 One line: `Observation <id> published (canon@<sha>) → <brain>: <receipt | pending weekly synthesis>`.
+
+## Error handling
+
+| Situation | Action |
+|---|---|
+| `SELF` empty (no `x-canon.folder`) | Stop — `/role-context` refuses it; never write under `agents//…`, which is shared |
+| `/canon-publish` not available | Leave the observation written locally, uncommitted; no hand-off; say `written locally, not published` |
+| No argument and nothing measurable this cycle | Write nothing; one line `No reportable observation this cycle — <reason>` |
+| Brain unreachable | Leave `status: raw`; never retry in a loop |

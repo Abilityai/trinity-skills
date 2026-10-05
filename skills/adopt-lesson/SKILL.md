@@ -7,6 +7,7 @@ user-invocable: true
 argument-hint: "[<lesson-id>] | --pending"
 requires:
   binaries: [git]
+canon: [org-context]
 metadata:
   version: "1.0"
   created: 2026-09-28
@@ -25,7 +26,7 @@ The down-flow of the learning loop (Tandem framework): **brain → lesson → th
 
 ### Step 1: Load the seat and the lessons
 
-Run `/role-context --quiet`. The brain is `x-role.brain`; its lessons are `$CANON/agents/<brain>/lessons/*.yaml` (grammar: the Tandem framework). A lesson is **for this seat** when `applies_to.roles` contains this role and `status` is `draft` or `canonical` (never `superseded`, never past `review_by`).
+Run `/role-context --quiet` (it stops on an empty `SELF` — never write under `agents//`). The brain is `x-role.brain`; its lessons are `$CANON/agents/<brain>/lessons/*.yaml` (grammar: the Tandem framework). A lesson is **for this seat** when `applies_to.roles` contains this role and `status` is `draft` or `canonical` (never `superseded`, never past `review_by`).
 
 - `--pending` → list the seat's lessons with no entry in `$CANON/agents/$SELF/adoptions.yaml`: `<id> · <confidence> · <statement> · conditions: <…>`, and stop.
 - `<lesson-id>` → decide that one. Unknown id → list the pending ones and stop.
@@ -64,3 +65,10 @@ Publish with `/canon-publish` (own folder). From the next run, `/role-context` l
 ### Step 5: Confirm
 
 One line: `<lesson-id>: <decision> — <why>`; for an adopt/adapt, one more line saying what the companion will do differently.
+
+## Error handling
+
+| Situation | Action |
+|---|---|
+| `SELF` empty (no `x-canon.folder`) | Stop — `/role-context` refuses it; never write under `agents//…`, which is shared |
+| `/canon-publish` not available (not among this agent's skills) | Leave the entry written in the local clone, uncommitted. Do **not** commit or push to the canon yourself. Reply `written locally, not published — /canon-publish unavailable` so the operator can install it |

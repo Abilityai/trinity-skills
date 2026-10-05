@@ -42,15 +42,23 @@ Load **the seat** into working context before acting on it. A role companion ser
 ### Step 1: Seat and canon
 
 ```bash
-ROLE=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *role:/{print $2}' template.yaml)
-STATUS=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *status:/{print $2}' template.yaml)
-BRAIN=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *brain:/{print $2}' template.yaml)
-CANON=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/clone_path:/{print $2}' template.yaml); CANON=${CANON:-canon}
-SELF=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/folder:/{print $2}' template.yaml | sed 's#^agents/##; s#/$##')
+# Block-style YAML only (one key per line under x-role: / x-canon:); surrounding quotes are stripped.
+unq() { sed -E "s/^[\"']//; s/[\"']\$//"; }
+ROLE=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *role:/{print $2}' template.yaml | unq)
+STATUS=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *status:/{print $2}' template.yaml | unq)
+BRAIN=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *brain:/{print $2}' template.yaml | unq)
+CANON=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/clone_path:/{print $2}' template.yaml | unq); CANON=${CANON:-canon}
+SELF=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/folder:/{print $2}' template.yaml | unq | sed 's#^agents/##; s#/$##')
 git -C "$CANON" pull --ff-only 2>/dev/null || echo "CANON_STALE"
 ```
 
-- No `x-role:` block → stop: "this agent does not serve a seat — run the role-companion wizard (`create-agent:role-companion`) or add `x-role: {role: <id>, status: calibrating}`."
+- No `x-role:` block, or `ROLE` came back empty → stop: "this agent does not serve a seat — run the role-companion wizard (`create-agent:role-companion`) or add, in block style (one key per line — the flow form `{role: …}` is not read):
+  ```yaml
+  x-role:
+    role: <id>
+    status: calibrating
+  ```"
+- `SELF` empty (no `x-canon.folder`) or not a plain folder name (`^[a-z0-9][a-z0-9-]*$`) → stop: "x-canon.folder is not set — this seat has no own canon folder; refusing to read or write `agents/<self>/`". Every role-pack writer relies on this guard: an empty `SELF` would turn `agents/$SELF/…` into the shared `agents//…`.
 - No canon clone → stop and point at `/canon-doctor` (it self-heals the clone). A failed pull is not a stop: continue on the local copy and put `canon: local copy, pull failed` on the could-not-read list.
 - `STATUS` is `calibrating` or `ready`. Anything else → report it as-is; never change it (the owner flips it).
 
@@ -84,7 +92,7 @@ systems:
   - id: hubspot
     direction: read                # read | write
     identity: HUBSPOT_TOKEN        # the vault credential NAME it reads with (also in `credentials`)
-    authority: paradigm-it-admin   # whose administrator granted that scope
+    authority: acme-it-admin       # whose administrator granted that scope
     metrics: [mql_count]           # metrics this system feeds
     domains: [hubspot-pipeline]    # canon domains it feeds
 ```
@@ -121,7 +129,8 @@ Could not read: <source — reason> · … | nothing
 
 | Situation | Action |
 |---|---|
-| No `x-role:` | Stop — the agent serves no seat; point at the wizard |
+| No `x-role:` (or a flow-style one that yields no `role`) | Stop — the agent serves no seat; point at the wizard and show the block form |
+| No `x-canon.folder` (empty `SELF`) | Stop — never read or write `agents//…` |
 | Role file missing | Stop — name `roles/<id>.yaml` |
 | Canon pull fails | Continue on the local copy; list it under Could not read |
 | A platform read fails | Continue; list it under Could not read — never invent a value |
