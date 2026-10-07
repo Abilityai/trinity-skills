@@ -40,11 +40,12 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `close` | 1.0 | mirrored · abilities | Close the current issue without a git commit — adds summary comment and marks done |
 | `commit` | 1.1 | mirrored · abilities | Commit changed skill files and close the in-progress issue — writes a traceability commit message referencing the issue number |
 | `groom` | 1.0 | mirrored · abilities | Groom the backlog — tag untagged issues with skill:* labels, verify priorities, surface stale in-progress work |
-| `project-init` | 1.3 | mirrored · abilities | Create or adopt a long-term managed project per PROJECT_STANDARD.md — GitHub epic issue with idempotent label creation and a workspace carry |
-| `project-intake` | 1.4 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the project's registry — G |
-| `project-reconcile` | 1.2 | mirrored · abilities | Sync projection adapters against the registry per PROJECT_STANDARD.md — GitHub Issues for external projects, task files for internal ones (s |
-| `project-steward` | 1.5 | mirrored · abilities | Autonomous sweep of all managed projects per PROJECT_STANDARD.md — external projects tracked in GitHub Issues and internal projects tracked  |
-| `project-task` | 1.5 | mirrored · abilities | Create a task in the uniform format per PROJECT_STANDARD.md — the ONLY sanctioned task-creation path |
+| `project-init` | 1.4 | mirrored · abilities | Create or adopt a long-term managed project per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on  |
+| `project-intake` | 1.5 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the project's registry — G |
+| `project-reconcile` | 1.3 | mirrored · abilities | Sync projection adapters against the registry per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
+| `project-status` | 1.2 | mirrored · abilities | Daily operator status for ONE managed project per the project standard — what moved since yesterday, what is done, what waits on the operato |
+| `project-steward` | 1.6 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
+| `project-task` | 1.6 | mirrored · abilities | Create a task in the uniform format per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator; §0 confi |
 | `roadmap` | 1.0 | mirrored · abilities | Strategic view of the agent backlog — open issues grouped by skill, showing which areas have the most work |
 | `sprint` | 1.0 | mirrored · abilities | Human-supervised development cycle — orchestrates roadmap → claim → autoplan → implement → commit for one skill issue |
 | `work-loop` | 1.3 | mirrored · abilities | Autonomous work loop — pick one backlog issue, execute it, close it, exit |
