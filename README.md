@@ -44,7 +44,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `project-intake` | 1.5 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the project's registry — G |
 | `project-reconcile` | 1.3 | mirrored · abilities | Sync projection adapters against the registry per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
 | `project-status` | 1.2 | mirrored · abilities | Daily operator status for ONE managed project per the project standard — what moved since yesterday, what is done, what waits on the operato |
-| `project-steward` | 1.6 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
+| `project-steward` | 1.7 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
 | `project-task` | 1.6 | mirrored · abilities | Create a task in the uniform format per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator; §0 confi |
 | `roadmap` | 1.0 | mirrored · abilities | Strategic view of the agent backlog — open issues grouped by skill, showing which areas have the most work |
 | `sprint` | 1.0 | mirrored · abilities | Human-supervised development cycle — orchestrates roadmap → claim → autoplan → implement → commit for one skill issue |
