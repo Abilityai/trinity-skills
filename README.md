@@ -76,6 +76,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `self-diagnostic` | 1.0 | library | Run self-diagnostics on the agent to verify skills, commands, agents, and dependencies are working |
 | `skill-builder` | 1.0 | library | Expert guide for creating Claude Code skills |
 | `update-dashboard` | 1.1 | library | Refresh an agent's business metrics in one pass — compute every metric declared in template.yaml metrics:, refresh dashboard.yaml, and recor |
+| `update-status` | 1.0 | library | Keep the agent's STATUS.md current — its own judgment of what it is in the middle of (now, open loops, next), rewritten in place under a siz |
 | `workspace-discipline` | 1.0 | library | Enforce workspace organization rules when creating files, writing documents, or generating assets |
 <!-- INDEX:END -->
 
