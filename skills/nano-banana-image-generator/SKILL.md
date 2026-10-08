@@ -1,45 +1,50 @@
 ---
 name: nano-banana-image-generator
-description: Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image Preview). Use when creating infographics, diagrams, thumbnails, social media graphics, or any AI-generated images. Costs $0.067/image.
+description: Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image). Use when creating infographics, diagrams, thumbnails, social media graphics, or any AI-generated images. Costs $0.067/image.
 allowed-tools: Bash, Read, Write
 category: visual-communication
 requires:
   env: [GEMINI_API_KEY, GOOGLE_API_KEY]
   binaries: [python3]
 metadata:
-  version: "1.0"
+  version: "1.1"
   changelog:
+    - "1.1: GA model ID gemini-3.1-flash-image across all three scripts (was the -preview ID; both resolve today, the GA one is the stable contract); generate_image.py is now the preferred entry point (proper JSON escaping + aspect ratio) and generate.sh is documented as the fallback that breaks on prompts containing double quotes; stale Gemini 2.5 header comments fixed. Folded back from a field copy's 2026-07-11 audit (library becomes the single source)"
     - "1.0: Promoted to trinity-skills library (2026-08-04)"
 ---
 
 # Nano Banana Image Generator
 
-Generate images using Google's Gemini 3.1 Flash Image Preview model (codename: Nano Banana 2).
+Generate images using Google's Gemini 3.1 Flash Image model (model ID: `gemini-3.1-flash-image`, codename: Nano Banana 2).
+
+Script paths below are relative to **this skill's directory**.
 
 ## Quick Start
 
-**Generate a simple image:**
+**Preferred - Python script (handles JSON escaping, aspect ratio control):**
 ```bash
-bash ~/.claude/skills/nano-banana-image-generator/scripts/generate.sh "A red apple on white background" apple.png
+python3 scripts/generate_image.py "A red apple on white background" /tmp/apple.png
 ```
 
 **Generate a 16:9 thumbnail:**
 ```bash
-python3 ~/.claude/skills/nano-banana-image-generator/scripts/generate_thumbnail.py "YouTube thumbnail showing AI agents" /tmp/thumb.png
+python3 scripts/generate_thumbnail.py "YouTube thumbnail showing AI agents" /tmp/thumb.png
 ```
 
-**Generate with custom output directory:**
+**Bash fallback (breaks on prompts containing double quotes - prefer the Python script):**
 ```bash
-OUTPUT_DIR=/tmp bash ~/.claude/skills/nano-banana-image-generator/scripts/generate.sh "Sunset over mountains" sunset.png
+OUTPUT_DIR=/tmp bash scripts/generate.sh "Sunset over mountains" sunset.png
 ```
 
 ## Scripts
 
 | Script | Purpose | Output |
 |--------|---------|--------|
-| `scripts/generate.sh` | General image generation | 1024x1024 PNG |
+| `scripts/generate_image.py` | **Preferred.** Python with aspect ratio control + proper JSON escaping | Configurable |
 | `scripts/generate_thumbnail.py` | 16:9 thumbnails | 1344x768 PNG |
-| `scripts/generate_image.py` | Python with aspect ratio control | Configurable |
+| `scripts/generate.sh` | Bash fallback (no escaping - fails on double quotes in prompts) | 1024x1024 PNG |
+
+All three scripts call the same model: `gemini-3.1-flash-image`.
 
 ## Pricing & Limits
 
@@ -104,7 +109,7 @@ DM Sans font, bold 700 weight for titles, clean minimal design.
 
 **Infographic:**
 ```bash
-bash scripts/generate.sh "Simple framework diagram with black background. CENTER: 'AI Agents' in large white text. SURROUNDING: 4 icons for Planning, Memory, Tools, Learning. DM Sans font, minimal design." agents_framework.png
+python3 scripts/generate_image.py "Simple framework diagram with black background. CENTER: 'AI Agents' in large white text. SURROUNDING: 4 icons for Planning, Memory, Tools, Learning. DM Sans font, minimal design." agents_framework.png
 ```
 
 **Thumbnail:**

@@ -3,8 +3,9 @@ name: epub-chapter-extractor
 description: Extract all chapters from an EPUB file into separate markdown files. Use when the user wants to split an EPUB into individual chapter files, extract EPUB chapters, or convert an ebook to separate markdown documents.
 category: documents-and-data
 metadata:
-  version: "1.0"
+  version: "1.1"
   changelog:
+    - "1.1: Spine-based extraction - a chapter is every spine file from its TOC entry up to the next one (EPUBs routinely split chapters across files), with anchor ranges when two entries share a file; TOC and manifest hrefs are percent-decoded before matching. Tested on 6 real books: the 1.0 extractor lost most of the text on 4 (e.g. 4.9K of ~100K words, one book 2 words) and doubled another; 1.1 recovers ~100K words on all 6. Folded back from a field copy (library = single source, 2026-10-01)"
     - "1.0: Promoted to trinity-skills library (2026-08-04)"
 ---
 

@@ -13,17 +13,13 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
-| `add-backlog` | 2.1 | library | Add GitHub Issues backlog workflow to any agent — creates the full development cycle (backlog, claim, close, groom, roadmap, autoplan, commi |
-| `add-canon` | 1.7 | library | Give any agent a shared canonical-data layer — installs /canon-publish (commit this agent's own folder in the fleet's shared canon repo), /c |
 | `add-git-sync` | 1.3 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
 | `add-memory` | 1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
-| `add-orchestrator` | 1.32 | library | Make any agent a system-aware orchestrator — installs /discover-agents (discover the fleet from live Trinity and/or a repo list into a descr |
-| `add-pipeline` | 1.7 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
-| `add-project-management` | 1.5 | library | Install cross-actor project management into this agent — GitHub Issues as single source of truth, uniform task anatomy with approval-ready c |
-| `adjust-playbook` | 1.12 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
-| `agent-fleet-analysis` | 2.4 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
+| `add-pipeline` | 1.8 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
+| `adjust-playbook` | 1.14 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
+| `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
-| `create-playbook` | 2.17 | mirrored · abilities | Create a new skill or playbook |
+| `create-playbook` | 2.19 | mirrored · abilities | Create a new skill or playbook |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data
@@ -31,7 +27,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
 | `document-extractor` | 1.0 | library | Extracts key information from documents (PDFs, images, text files) in a folder and creates structured markdown summaries with the same filen |
-| `epub-chapter-extractor` | 1.0 | library | Extract all chapters from an EPUB file into separate markdown files |
+| `epub-chapter-extractor` | 1.1 | library | Extract all chapters from an EPUB file into separate markdown files |
 | `file-indexer` | 1.0 | library | Generate a comprehensive file system index with directory tree, file sizes, and modification dates |
 
 ### project-management
@@ -44,11 +40,12 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `close` | 1.0 | mirrored · abilities | Close the current issue without a git commit — adds summary comment and marks done |
 | `commit` | 1.1 | mirrored · abilities | Commit changed skill files and close the in-progress issue — writes a traceability commit message referencing the issue number |
 | `groom` | 1.0 | mirrored · abilities | Groom the backlog — tag untagged issues with skill:* labels, verify priorities, surface stale in-progress work |
-| `project-init` | 1.1 | mirrored · abilities | Create or adopt a long-term managed project per PROJECT_STANDARD.md — GitHub epic issue with idempotent label creation and a project_files/< |
-| `project-intake` | 1.2 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the GitHub Issues registry |
-| `project-reconcile` | 1.1 | mirrored · abilities | Sync projection adapters against the GitHub Issues registry per PROJECT_STANDARD.md |
-| `project-steward` | 1.3 | mirrored · abilities | Autonomous sweep of all managed projects per PROJECT_STANDARD.md |
-| `project-task` | 1.3 | mirrored · abilities | Create a task issue in the uniform format per PROJECT_STANDARD.md — the ONLY sanctioned task-creation path |
+| `project-init` | 1.4 | mirrored · abilities | Create or adopt a long-term managed project per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on  |
+| `project-intake` | 1.5 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the project's registry — G |
+| `project-reconcile` | 1.3 | mirrored · abilities | Sync projection adapters against the registry per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
+| `project-status` | 1.2 | mirrored · abilities | Daily operator status for ONE managed project per the project standard — what moved since yesterday, what is done, what waits on the operato |
+| `project-steward` | 1.7 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
+| `project-task` | 1.6 | mirrored · abilities | Create a task in the uniform format per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator; §0 confi |
 | `roadmap` | 1.0 | mirrored · abilities | Strategic view of the agent backlog — open issues grouped by skill, showing which areas have the most work |
 | `sprint` | 1.0 | mirrored · abilities | Human-supervised development cycle — orchestrates roadmap → claim → autoplan → implement → commit for one skill issue |
 | `work-loop` | 1.3 | mirrored · abilities | Autonomous work loop — pick one backlog issue, execute it, close it, exit |
@@ -67,8 +64,8 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `animated-explainer` | 1.26 | library | Build an animated, data-driven explainer film for a real system — a canvas film that renders live from the product's own data and cannot dri |
 | `create-explanatory-image` | 1.1 | library | Generate explanatory diagrams and infographics that visually communicate concepts |
 | `explain-visually` | 1.1 | library | Explain a complex topic back to you with visuals - the right diagram for each facet (flowchart, timeline, sequence, schema/ER, state machine |
-| `microsite` | 1.5 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
-| `nano-banana-image-generator` | 1.0 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image Preview) |
+| `microsite` | 1.6 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
+| `nano-banana-image-generator` | 1.1 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image) |
 | `one-pager` | 1.2 | library | Generate a brand-locked, information-dense single-page PDF that lets a reader understand an entire topic - a company, a product, a project,  |
 | `presentation` | 1.2 | library | Generate a brand-locked multi-slide presentation deck (16:9, 1920x1080) and assemble into a PDF |
 
@@ -79,6 +76,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `self-diagnostic` | 1.0 | library | Run self-diagnostics on the agent to verify skills, commands, agents, and dependencies are working |
 | `skill-builder` | 1.0 | library | Expert guide for creating Claude Code skills |
 | `update-dashboard` | 1.1 | library | Refresh an agent's business metrics in one pass — compute every metric declared in template.yaml metrics:, refresh dashboard.yaml, and recor |
+| `update-status` | 1.0 | library | Keep the agent's STATUS.md current — its own judgment of what it is in the middle of (now, open loops, next), rewritten in place under a siz |
 | `workspace-discipline` | 1.0 | library | Enforce workspace organization rules when creating files, writing documents, or generating assets |
 <!-- INDEX:END -->
 

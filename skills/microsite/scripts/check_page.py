@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify a /microsite page: console errors, horizontal overflow, broken images,
-per-section screenshots. Exit 0 = clean, 3 = issues (see JSON report on stdout)."""
+per-section screenshots and word counts. Exit 0 = clean, 3 = issues (see JSON report
+on stdout). Word counts are informational (density budget) and never fail the check."""
 import argparse
 import json
 import pathlib
@@ -50,9 +51,13 @@ def main():
             "[...document.images].filter(i=>!i.complete||i.naturalWidth===0)"
             ".map(i=>i.getAttribute('src'))")
 
+        report["words_total"] = page.evaluate(
+            "document.body.innerText.split(/\\s+/).filter(Boolean).length")
+
         for sec in page.query_selector_all("section[id], header[id]"):
             sid = sec.get_attribute("id") or "anon"
-            entry = {"id": sid}
+            entry = {"id": sid, "words": sec.evaluate(
+                "e => e.innerText.split(/\\s+/).filter(Boolean).length")}
             if not args.no_shots:
                 try:
                     sec.scroll_into_view_if_needed()
