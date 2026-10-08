@@ -37,6 +37,19 @@ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 MIRROR_RE = re.compile(r"^abilities@[0-9a-f]{7,40} \S+$")
 VERSION_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")
+# `canon:` frontmatter (ent#509/#510, framework E4): the domain ids a skill reads from
+# the fleet canon — ids in `domains.yaml`, or the fixed top-level zones.
+CANON_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+
+# `sets:` in catalog.yaml (ent#510) — the SAME rules the platform parser applies
+# (Abilityai/trinity services/skill_sets.py, ent#530 / PR #3005), held strictly
+# here: any problem code the platform would attach is a FAIL, because a set the
+# platform lists as `partial` or `invalid` cannot be assigned.
+SET_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+SET_ENV_RE = re.compile(r"^[A-Z][A-Z0-9_]{0,63}$")
+SET_MAX_SETS, SET_MAX_MEMBERS, SET_MAX_SCHEDULES, SET_MAX_ENV = 50, 100, 10, 20
+# A suggested schedule's message must be a one-line playbook call (framework §6).
+PLAYBOOK_CALL_RE = re.compile(r"^/[a-z0-9][a-z0-9-]{0,63}( [^\n]*)?$")
 
 # Platform injection caps — skill_packaging.py @ Abilityai/trinity dev 3f1d4c89
 SKILL_MAX_BYTES = 10 * 1024 * 1024
@@ -276,6 +289,15 @@ def validate_skill(d):
     if mirror is not None and not (isinstance(mirror, str) and MIRROR_RE.match(mirror)):
         fail("mirror", "metadata.mirror must be 'abilities@<sha> <path-in-abilities>'")
 
+    canon = fm.get("canon")
+    if canon is not None:
+        if not isinstance(canon, list) or not canon:
+            fail("canon", "canon: must be a non-empty list of domain ids, e.g. canon: [icp-model, org-context]")
+        else:
+            for c in canon:
+                if not isinstance(c, str) or not CANON_ID_RE.match(c):
+                    fail("canon", f"canon: entry {c!r} is not a domain id (^[a-z0-9][a-z0-9-]{{0,63}}$)")
+
     declared = []
     req = fm.get("requires")
     if req is not None and not isinstance(req, dict):
@@ -317,6 +339,83 @@ def validate_skill(d):
             fail("env-coherence", f"declared but never referenced (decorative): {k}")
 
     return problems
+
+
+# ------------------------------------------------------ catalog sets (repo)
+
+def validate_sets(skill_names):
+    """catalog.yaml `sets:` against the platform's parse rules. Returns FAIL lines."""
+    if not _cat_file.is_file():
+        return []
+    text = _cat_file.read_text()
+    if not re.search(r"^sets:", text, re.M):
+        return []
+    try:
+        import yaml
+    except ImportError:
+        return ["sets: validation needs PyYAML (pip install pyyaml) — the fallback parser cannot read nested set bodies"]
+    try:
+        raw = (yaml.safe_load(text) or {}).get("sets")
+    except Exception as e:  # noqa: BLE001 — any parse error is the finding
+        return [f"catalog.yaml does not parse: {e}"]
+    if not isinstance(raw, dict):
+        return ["sets: must be a mapping of set name → member list or {skills, requires, schedules}"]
+    out = []
+    if len(raw) > SET_MAX_SETS:
+        out.append(f"sets: {len(raw)} sets > platform bound {SET_MAX_SETS}")
+    for name, body in raw.items():
+        where = f"sets.{name}"
+        if not isinstance(name, str) or not SET_NAME_RE.match(name):
+            out.append(f"{where}: set name violates the skill-name rule (the platform skips it silently)")
+            continue
+        if name in skill_names:
+            out.append(f"{where}: name collides with a skill (name_collides_with_skill)")
+        if isinstance(body, list):
+            members, env, sched = body, None, None
+        elif isinstance(body, dict):
+            unknown = sorted(set(body) - {"skills", "requires", "description", "schedules"})
+            if unknown:
+                out.append(f"{where}: unknown keys {unknown}")
+            members = body.get("skills")
+            req = body.get("requires")
+            if req is not None and not (isinstance(req, dict) and set(req) <= {"env"}):
+                out.append(f"{where}.requires: only {{env: [...]}} is read by the platform")
+            env = req.get("env") if isinstance(req, dict) else None
+            sched = body.get("schedules")
+        else:
+            out.append(f"{where}: must be a member list or a mapping (invalid_set)")
+            continue
+        if not isinstance(members, list) or not members:
+            out.append(f"{where}: needs a non-empty skills list (invalid_set)")
+            continue
+        if len(members) > SET_MAX_MEMBERS:
+            out.append(f"{where}: {len(members)} members > {SET_MAX_MEMBERS} (too_many)")
+        for m in members:
+            if not isinstance(m, str) or not SET_NAME_RE.match(m):
+                out.append(f"{where}: member {m!r} is not a skill name (invalid_member_name)")
+            elif m not in skill_names:
+                out.append(f"{where}: member {m!r} is not a skill in this library (member_missing — a set names its own source's skills)")
+        if len(set(members)) != len(members):
+            out.append(f"{where}: duplicate members")
+        if env is not None:
+            if not isinstance(env, list) or len(env) > SET_MAX_ENV or not all(isinstance(k, str) and SET_ENV_RE.match(k) for k in env):
+                out.append(f"{where}.requires.env: list of ≤{SET_MAX_ENV} env key names (invalid_env)")
+        if sched is not None:
+            if not isinstance(sched, list) or len(sched) > SET_MAX_SCHEDULES:
+                out.append(f"{where}.schedules: list of ≤{SET_MAX_SCHEDULES} entries (invalid_schedule)")
+            else:
+                for i, item in enumerate(sched):
+                    ok = (isinstance(item, dict)
+                          and isinstance(item.get("name"), str) and 0 < len(item["name"].strip()) <= 120
+                          and isinstance(item.get("cron"), str) and len(item["cron"].split()) == 5 and len(item["cron"]) <= 100
+                          and isinstance(item.get("message"), str) and 0 < len(item["message"]) <= 2000)
+                    if not ok:
+                        out.append(f"{where}.schedules[{i}]: needs name (≤120), a 5-field cron and a message (invalid_schedule)")
+                    elif not PLAYBOOK_CALL_RE.match(item["message"]):
+                        out.append(f"{where}.schedules[{i}]: message must be a one-line playbook call like `/daily-brief`")
+                    elif item["message"][1:].split(" ")[0] not in skill_names:
+                        out.append(f"{where}.schedules[{i}]: message calls /{item['message'][1:].split(' ')[0]}, which is not a skill in this library")
+    return out
 
 
 # ---------------------------------------------------------- platform parity
@@ -416,6 +515,11 @@ def main(argv):
         print(f"{'✗' if has_fail else '✓'} {d.name}")
         for level, gate, msg in problems:
             print(f"    [{level}] {gate}: {msg}")
+
+    if "--all" in args:
+        for msg in validate_sets({d.name for d in _skill_dirs()}):
+            failed = True
+            print(f"✗ catalog: {msg}")
 
     if grand_total > TOTAL_MAX_BYTES:
         failed = True

@@ -32,6 +32,7 @@ Every skill declares `category:` from this enum (CI-enforced):
 | `research-and-analysis` | Gathering and judging external information |
 | `workspace` | Git, hygiene, self-diagnostics, skill authoring |
 | `project-management` | Backlogs, task registries and the project lifecycle — GitHub Issues as the shared ledger |
+| `role-companions` | Role companions — the role pack a seat's companion runs on, and the brain side of the learning loop |
 
 The enum lives in `catalog.yaml` (`categories:`) — the validator reads it from there. Extending it is a PR to `catalog.yaml` and this file together.
 
@@ -60,7 +61,38 @@ Rules:
 - Optional lifecycle keys: `deprecated: true` and `superseded-by: <name>` — how a skill retires. Deprecated skills are removed at the next major tag.
 - Mirrored skills carry `metadata.mirror: "abilities@<sha> <path>"` (see below).
 - Unknown keys are tolerated by the platform parser, but don't invent fields — propose them here first.
+- **`canon:`** (framework E4) — a skill that reads the fleet's shared canon declares the domains it needs, as ids
+  from the canon's `domains.yaml`: `canon: [icp-model, org-context]`. It states a need, not a permission (the canon
+  is open to the whole fleet), so a skill's context loading is explicit and lintable. Validated for shape only
+  (a non-empty list of `^[a-z0-9][a-z0-9-]{0,63}$`). The platform parser ignores unknown keys today; if it is ever
+  made strict, this key must be allowed first.
 - **Callable as one line.** A library skill may be invoked by a schedule, an orchestrator, or another agent as a single `/name [args]` message (the fleet's playbook-call convention). It must therefore run correctly from that one line: declare its inputs in `argument-hint`, and if it has approval gates, declare and implement a headless mode (`--autonomous`) — a gated skill invoked unattended blocks on a prompt nobody sees. The SKILL.md is the contract; no input/output schema is required.
+
+## Library vs agent skill
+
+**"Would you want this skill unchanged in another company tomorrow?"** Yes → it belongs in this library. A skill
+that only makes sense for one agent's data ("refresh the CMO's ICP model from HubSpot") is an agent skill and
+stays in that agent's repo.
+
+## Skill sets (`sets:` in catalog.yaml)
+
+A set is a named family of **this library's own skills**, assigned to an agent in one act (`set:<name>`) and kept
+current as a unit by the platform. The schema is the platform parser's, and `tools/validate.py` holds it to the
+platform's rules — anything the platform would list as `partial` or `invalid` fails CI here:
+
+```yaml
+sets:
+  role-pack:
+    description: "One line — what the family is for."
+    skills: [role-context, daily-brief]          # members: skills in THIS library
+    requires: {env: [SOME_KEY]}                  # optional: prerequisite env keys
+    schedules:                                   # optional: SUGGESTIONS, never created by the platform
+      - name: "Daily brief"
+        cron: "30 7 * * 1-5"                     # five fields
+        message: /daily-brief                    # a one-line playbook call to a skill in this library
+```
+
+A set's name may not equal a skill's name. Bounds: 50 sets, 100 members, 10 schedules, 20 env keys.
 
 ## Credentials
 
