@@ -15,11 +15,11 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 |---|---|---|---|
 | `add-git-sync` | 1.3 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
 | `add-memory` | 1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
-| `add-pipeline` | 1.8 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
+| `add-pipeline` | 1.9 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
 | `adjust-playbook` | 1.14 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
 | `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
-| `create-playbook` | 2.19 | mirrored · abilities | Create a new skill or playbook |
+| `create-playbook` | 2.20 | mirrored · abilities | Create a new skill or playbook |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data
@@ -43,8 +43,8 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `project-init` | 1.4 | mirrored · abilities | Create or adopt a long-term managed project per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on  |
 | `project-intake` | 1.5 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the project's registry — G |
 | `project-reconcile` | 1.3 | mirrored · abilities | Sync projection adapters against the registry per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
-| `project-status` | 1.2 | mirrored · abilities | Daily operator status for ONE managed project per the project standard — what moved since yesterday, what is done, what waits on the operato |
-| `project-steward` | 1.7 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
+| `project-status` | 1.3 | mirrored · abilities | Daily operator status for ONE managed project per the project standard — what moved since yesterday, what is done, what waits on the operato |
+| `project-steward` | 1.8 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
 | `project-task` | 1.6 | mirrored · abilities | Create a task in the uniform format per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator; §0 confi |
 | `roadmap` | 1.0 | mirrored · abilities | Strategic view of the agent backlog — open issues grouped by skill, showing which areas have the most work |
 | `sprint` | 1.0 | mirrored · abilities | Human-supervised development cycle — orchestrates roadmap → claim → autoplan → implement → commit for one skill issue |
