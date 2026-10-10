@@ -12,11 +12,12 @@ requires:
   binaries: [python3]
   packages: [playwright]
 metadata:
-  version: "1.2"
+  version: "1.2.1"
   created: 2026-06-05
   author: Ability.ai
   locked_design: true
   changelog:
+    - "1.2.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
     - "1.2: Promoted to the public trinity-skills library — external dependencies vendored (brand_defaults.md replaces the private design-system doc as a swappable DEFAULT; image_concepts.md replaces the cross-skill object library; render_html_to_png.py copied into scripts/), --autonomous headless mode added so the skill is callable as one line, Drive delivery removed, imagery now invoked via /nano-banana-image-generator by name instead of reaching into its scripts, personal contact details removed from the worked example"
     - "1.0 - initial: distill -> content gate -> image -> render -> fit-guard -> visual gate -> 1-page PDF; 16:9 default, dual theme, thin accent + optional inline imagery"
     - "1.1 - Tier-3 conformance pass: added Completion Checklist + Error Recovery, effort:high, ultrathink marker; fixed the flex no-shrink layout invariant + 3-signal fit-guard found during validation"
@@ -53,7 +54,7 @@ Works for **any topic** - company overview, product sheet, project brief, invest
 |----------|-----------|
 | Manual one-pager in Canva / Figma / InDesign | Max flexibility, but slow, brand-drift risk, no auto-distillation, no mechanical one-page guarantee |
 | `/presentation` (multi-slide deck) | Spacious, one-idea-per-slide, many pages - the opposite density profile |
-| `/one-pager` (this skill) | Single page, dense, brand-locked, distills a brief, **mechanically guaranteed to fit on one page**. ~$0.07 for the accent image (or $0 with `--no-image`) + ~1-2 min |
+| `/one-pager` (this skill) | Single page, dense, brand-locked, distills a brief, **mechanically guaranteed to fit on one page**. ~USD 0.07 for the accent image (or free with `--no-image`) + ~1-2 min |
 
 ## State Dependencies
 
@@ -82,8 +83,8 @@ or prefix with the directory the skill was injected into.
 | PIL/Pillow (`pip install pillow`) | PDF assembly (Step 11) | Report the install command; the PNG is still a valid deliverable. |
 | `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | the accent band + any inline imagery | Not fatal — proceed as if `--no-image` was passed, and say so in the delivery report. Held by the `/nano-banana-image-generator` child skill, which fails naming the key. |
 
-Generation cost: ~$0.067 for the accent band, +~$0.067 per optional inline image.
-`--no-image` (or no key) = $0.
+Generation cost: ~USD 0.067 for the accent band, +~USD 0.067 per optional inline image.
+`--no-image` (or no key) = USD 0.
 
 ## Inputs
 
@@ -97,7 +98,7 @@ Generation cost: ~$0.067 for the accent band, +~$0.067 per optional inline image
 | `--format` | `16:9` (1920×1080) | `16:9` screen/dashboard (default), `a4` portrait print, `letter` US portrait print, `a4-landscape` print dashboard. See the formats table in `block_templates.md`. |
 | `--theme` | `dark` | `dark` = the black canvas of the default palette. `light` = warm-paper print-friendly variant. Both are swappable per `brand_defaults.md` §0. |
 | `--intent` | `auto` | Picks the layout preset. `auto` infers from the source; override with `company` (Preset A), `dashboard` (Preset B), or `briefing` (Preset C). |
-| `--no-image` | (off) | Skip ALL image generation (no accent band, no inline). Pure typographic + data density. $0, faster. |
+| `--no-image` | (off) | Skip ALL image generation (no accent band, no inline). Pure typographic + data density. free, faster. |
 | `--autonomous` | (off) | Headless mode for scheduled/unattended runs: skip both approval gates. `[NEEDS:]` facts are **omitted, never guessed**, and listed in the final report. A bare-topic source is a failed run — report it and produce nothing. |
 | `--output-dir` | `one_pager_{slug}/` | Where the HTML, PNG, image sources, and PDF land. Relative to the working directory unless given absolutely. |
 

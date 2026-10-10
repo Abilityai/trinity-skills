@@ -12,10 +12,11 @@ requires:
   binaries: [python3]
   packages: [playwright]
 metadata:
-  version: "1.6"
+  version: "1.6.1"
   created: 2026-07-29
   author: Ability.ai
   changelog:
+    - "1.6.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
     - "1.6: Field lessons folded back from the authoring copy (library becomes the single source) - (a) density pass: new Step 3b + page_templates.md §10 (takeaway first, one row per item, one home per fact, no sentences about the document, verbatim zones protected, word budget measured BEFORE promising a cut); check_page.py now reports words per section + words_total; long review documents may exceed 6-10 sections when a sticky block-index rail (§4) carries navigation; new grammar S14 takeaway bar, S15 field-list item, S16 stage matrix, provenance chips. (b) count-up is for magnitudes, not precision - render four-decimal figures literally; a hero scrim radial can erase the canvas it covers (§6). (c) troubleshooting rows: lazy-loaded images read as broken by the checker, 390px layout traps (nowrap caption chips, nested grids, nested-table min-widths, flex headers), SVG annotation collisions, multi-scope Vercel accounts (--scope), hero-canvas node labels drifting over the headline"
     - "1.5: Promoted to the public trinity-skills library — brand-neutralized (page_templates.md §0 makes the palette a swappable DEFAULT and defers to the consuming workspace's own design doc; the discipline rules stay locked), --share made headless-capable via VERCEL_TOKEN, Drive delivery removed, skill-relative script paths, sibling-skill references made optional, declared requires:/argument-hint + cold-start behavior"
     - "1.4: Print trap - .count spans print as $0 (observer-gated); every count-up needs a print-only .pn twin with the final value (recipe in page_templates.md §7)"
@@ -101,7 +102,7 @@ prefix with the directory the skill was injected into.
 | Requirement | Needed for | Missing → |
 |---|---|---|
 | `python3` + Playwright/Chromium | Step 7 verification, Step 9 PDF | Report the install command (`pip install playwright && playwright install chromium`); **never claim verification that didn't run**. |
-| `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | generated imagery only | Not fatal - build the page imagery-free (the grammar degrades gracefully) and say so in the delivery report. Imagery-free runs cost $0. |
+| `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | generated imagery only | Not fatal - build the page imagery-free (the grammar degrades gracefully) and say so in the delivery report. Imagery-free runs cost USD 0. |
 | `VERCEL_TOKEN` | `--share` only | Fail that step naming the key (`VERCEL_TOKEN not set - add it to this agent's credentials`); the local page is still THE deliverable. An interactively-logged-in Vercel CLI also works for a human at a terminal, but a headless agent needs the token. |
 
 ## Inputs

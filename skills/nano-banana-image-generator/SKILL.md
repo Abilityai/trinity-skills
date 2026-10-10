@@ -7,8 +7,9 @@ requires:
   env: [GEMINI_API_KEY, GOOGLE_API_KEY]
   binaries: [python3]
 metadata:
-  version: "1.1"
+  version: "1.1.1"
   changelog:
+    - "1.1.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
     - "1.1: GA model ID gemini-3.1-flash-image across all three scripts (was the -preview ID; both resolve today, the GA one is the stable contract); generate_image.py is now the preferred entry point (proper JSON escaping + aspect ratio) and generate.sh is documented as the fallback that breaks on prompts containing double quotes; stale Gemini 2.5 header comments fixed. Folded back from a field copy's 2026-07-11 audit (library becomes the single source)"
     - "1.0: Promoted to trinity-skills library (2026-08-04)"
 ---
@@ -48,7 +49,7 @@ All three scripts call the same model: `gemini-3.1-flash-image`.
 
 ## Pricing & Limits
 
-- **Cost**: $0.067 per image
+- **Cost**: USD 0.067 per image
 - **Free tier**: 500 requests/day
 - **Generation time**: ~22 seconds
 - **Resolution**: 1024x1024 (square), 1344x768 (16:9)

@@ -83,6 +83,10 @@ Rules:
 - Unknown keys are tolerated by the platform parser, but don't invent fields — propose them here first.
 - **Callable as one line.** A library skill may be invoked by a schedule, an orchestrator, or another agent as a single `/name [args]` message (the fleet's playbook-call convention). It must therefore run correctly from that one line: declare its inputs in `argument-hint`, and if it has approval gates, declare and implement a headless mode (`--autonomous`) — a gated skill invoked unattended blocks on a prompt nobody sees. The SKILL.md is the contract; no input/output schema is required.
 
+### No bare dollar-digit in a skill body
+
+The runtime fills `$0`, `$1`, `$2` … anywhere in a `SKILL.md` body — code blocks included — with the words the skill was invoked with. A skill called with arguments therefore runs with `awk '{print $2}'` or a shell function's `"$1"` silently rewritten. The validator fails any bare dollar-digit in the body (rule `arg-substitution`). Write shell positionals as `${1}`, awk fields as `$(2)`, the intended argument placeholder as `$ARGUMENTS` / `$ARGUMENTS[0]`, and prices as `USD 0.07`. Frontmatter is not substituted and is not checked.
+
 ## Credentials
 
 1. **Env vars are the only credential interface.** Skills read named env keys — never credential files, never interactive auth (`gcloud auth login`, browser OAuth); the consuming agent may be headless. If a tool demands a credential *file*, materialize it from the env var at runtime.

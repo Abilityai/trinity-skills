@@ -3,8 +3,9 @@ name: epub-chapter-extractor
 description: Extract all chapters from an EPUB file into separate markdown files. Use when the user wants to split an EPUB into individual chapter files, extract EPUB chapters, or convert an ebook to separate markdown documents.
 category: documents-and-data
 metadata:
-  version: "1.1"
+  version: "1.1.1"
   changelog:
+    - "1.1.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
     - "1.1: Spine-based extraction - a chapter is every spine file from its TOC entry up to the next one (EPUBs routinely split chapters across files), with anchor ranges when two entries share a file; TOC and manifest hrefs are percent-decoded before matching. Tested on 6 real books: the 1.0 extractor lost most of the text on 4 (e.g. 4.9K of ~100K words, one book 2 words) and doubled another; 1.1 recovers ~100K words on all 6. Folded back from a field copy (library = single source, 2026-10-01)"
     - "1.0: Promoted to trinity-skills library (2026-08-04)"
 ---
@@ -24,13 +25,13 @@ When the user wants to extract chapters from an EPUB, run the extraction script:
 
 **Using uv (recommended):**
 ```bash
-uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python "$(dirname "$0")/extract_chapters.py" "/path/to/book.epub" [output_dir]
+uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python "$(dirname "${0}")/extract_chapters.py" "/path/to/book.epub" [output_dir]
 ```
 
 **Using pip (alternative):**
 ```bash
 pip install ebooklib beautifulsoup4 html2text lxml
-python "$(dirname "$0")/extract_chapters.py" "/path/to/book.epub" [output_dir]
+python "$(dirname "${0}")/extract_chapters.py" "/path/to/book.epub" [output_dir]
 ```
 
 If `output_dir` is omitted, creates a folder named after the EPUB in the same directory.

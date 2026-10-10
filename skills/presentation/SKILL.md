@@ -11,12 +11,13 @@ requires:
   binaries: [python3]
   packages: [playwright, pillow]
 metadata:
-  version: "1.2"
+  version: "1.2.1"
   created: 2026-06-04
   updated: 2026-07-23
   author: Ability.ai
   locked_design: true
   changelog:
+    - "1.2.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
     - "1.2: Promoted to the public trinity-skills library — external dependencies vendored (brand_defaults.md replaces the private design-system doc as a swappable DEFAULT, and it is now the only palette source since slide_templates.md carried none inline; image_concepts.md replaces the cross-skill object library; render_html_to_png.py copied into scripts/), --autonomous headless mode added so the skill is callable as one line, Drive delivery removed, imagery invoked via /nano-banana-image-generator by name, speaker/org details in the slide templates replaced with placeholders, 9.2 MB examples/ folder dropped"
     - "1.1: Add dense slide type - composes /one-pager (16:9) for information-dense slides (dashboards, fact sheets, at-a-glance summaries); density guidance (don't overload content slides); Composes section; deck footer carried via the one-pager footer block"
     - "1.0: Initial version"
@@ -57,7 +58,7 @@ Every slide is its own rendered PNG. After all slides render, a final PDF assemb
 |----------|-----------|
 | Manual deck in Keynote / Google Slides | Maximum flexibility (builds, transitions) but slow, brand-drift risk, no automatic hero-image generation |
 | a social-carousel skill (4:5) | Same engine, wrong aspect for projection / screen-share |
-| `/presentation` (this skill) | 16:9 native, brand-locked, hero per slide, ships as PDF. ~$0.07 × N for hero generation; trades live builds for speed + brand coherence |
+| `/presentation` (this skill) | 16:9 native, brand-locked, hero per slide, ships as PDF. ~USD 0.07 × N for hero generation; trades live builds for speed + brand coherence |
 
 ## State Dependencies
 
@@ -85,8 +86,8 @@ or prefix with the directory the skill was injected into.
 | PIL/Pillow (`pip install pillow`) | PDF assembly | Report the install command; the slide PNGs are still a valid deliverable. |
 | `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | hero imagery | Not fatal — render the deck hero-free (the layouts degrade gracefully) and say so in the delivery report. Held by the `/nano-banana-image-generator` child skill, which fails naming the key. |
 
-Generation cost: ~$0.067 per hero image × N slides with heroes (a 10-slide deck with 8
-heroes runs ~$0.54 + ~3 min). Hero-free = $0.
+Generation cost: ~USD 0.067 per hero image × N slides with heroes (a 10-slide deck with 8
+heroes runs ~USD 0.54 + ~3 min). Hero-free costs nothing.
 
 ## Headless mode (`--autonomous`)
 
@@ -183,8 +184,8 @@ A `dense` slide block looks like:
 
 ```
 ## Slide 06 — dense
-Brief: Q3 status at a glance. ARR $412K (+14% QoQ). 9 active clients, 2 in onboarding.
-  Pipeline: 6 qualified opps, $180K weighted. Trinity OSS: 1.2K stars, 40 deployments.
+Brief: Q3 status at a glance. ARR USD 412K (+14% QoQ). 9 active clients, 2 in onboarding.
+  Pipeline: 6 qualified opps, USD 180K weighted. Trinity OSS: 1.2K stars, 40 deployments.
   Risks: Xero re-auth pending; 2 renewals in Aug. Roadmap: Agent Hub beta Sep, SOC2 Nov.
 ```
 
@@ -215,7 +216,7 @@ If anything is missing or vague:
 2. Use `AskUserQuestion` to ask the user to fill in the missing fields. Do NOT proceed to Step 2 until every required field is filled.
 3. Once the user provides the missing text, write the completed source to `{output-dir}/source.md` so it can be referenced in later steps and reproduced.
 
-**Why this gate matters:** the most expensive failure mode in this skill is generating heroes + rendering slides (each hero is ~$0.07 and ~10 sec), only to discover the user wanted different wording. By forcing complete text upfront, we make iteration on copy free and ensure the visual generation step runs on locked content. This matters more as the deck grows - a 20-slide deck with 16 heroes is $1.12 of cost behind a single typo.
+**Why this gate matters:** the most expensive failure mode in this skill is generating heroes + rendering slides (each hero is ~USD 0.07 and ~10 sec), only to discover the user wanted different wording. By forcing complete text upfront, we make iteration on copy free and ensure the visual generation step runs on locked content. This matters more as the deck grows - a 20-slide deck with 16 heroes is USD 1.12 of cost behind a single typo.
 
 ### Step 2: Parse the source + plan the deck
 
@@ -351,12 +352,12 @@ Save each HTML to `{output-dir}/slide_{NN}.html`.
 For each `dense` slide, **invoke `/one-pager` by name** (Skill tool) - never fork its templates or call its `scripts/` directly; go through the entry point so its fixes propagate:
 
 - **Source**: the slide's `Brief` from `source.md` (already approved at Gate 1 - so the child's content gate is a fast verbatim confirm, not a rewrite)
-- **Flags**: `--format 16:9 --theme dark` (matches the deck canvas exactly - 1920x1080, same brand system), `--output-dir {output-dir}/dense_{NN}/`. Add `--no-image` if the slide should be pure typographic density ($0)
+- **Flags**: `--format 16:9 --theme dark` (matches the deck canvas exactly - 1920x1080, same brand system), `--output-dir {output-dir}/dense_{NN}/`. Add `--no-image` if the slide should be pure typographic density (free)
 - **Footer**: pass the deck footer as the one-pager's footer block content - `{SPEAKER} · {ORG}` left, `{NN} / {N}` progress right - so the LOCKED slide-progress anchor is preserved on dense slides too
 - **Consume the PNG**: after the child's fit-guard passes and its visual gate approves, copy `dense_{NN}/{child-slug}.png` to `{output-dir}/{slug}_slide_{NN}.png`. The child's 1-page PDF is an ignored byproduct - the deck PDF (Step 10) is THE deliverable
 - **Fit**: the child's fit-guard + tightening ladder mechanically guarantee the slide never clips - do not re-litigate density here
 
-Cost: ~$0.07 per dense slide for the accent band, $0 with `--no-image`.
+Cost: ~USD 0.07 per dense slide for the accent band, free with `--no-image`.
 
 ### Step 7: Render N PNGs
 

@@ -13,10 +13,10 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
-| `add-git-sync` | 1.3 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
-| `add-memory` | 1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
-| `add-pipeline` | 1.9 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
-| `adjust-playbook` | 1.14 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
+| `add-git-sync` | 1.3.1 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
+| `add-memory` | 1.1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
+| `add-pipeline` | 1.9.1 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
+| `adjust-playbook` | 1.14.1 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
 | `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
 | `create-playbook` | 2.21 | mirrored · abilities | Create a new skill or playbook |
@@ -27,7 +27,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
 | `document-extractor` | 1.0 | library | Extracts key information from documents (PDFs, images, text files) in a folder and creates structured markdown summaries with the same filen |
-| `epub-chapter-extractor` | 1.1 | library | Extract all chapters from an EPUB file into separate markdown files |
+| `epub-chapter-extractor` | 1.1.1 | library | Extract all chapters from an EPUB file into separate markdown files |
 | `file-indexer` | 1.0 | library | Generate a comprehensive file system index with directory tree, file sizes, and modification dates |
 
 ### project-management
@@ -63,11 +63,11 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 |---|---|---|---|
 | `animated-explainer` | 1.26 | library | Build an animated, data-driven explainer film for a real system — a canvas film that renders live from the product's own data and cannot dri |
 | `create-explanatory-image` | 1.1 | library | Generate explanatory diagrams and infographics that visually communicate concepts |
-| `explain-visually` | 1.1 | library | Explain a complex topic back to you with visuals - the right diagram for each facet (flowchart, timeline, sequence, schema/ER, state machine |
-| `microsite` | 1.6 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
-| `nano-banana-image-generator` | 1.1 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image) |
-| `one-pager` | 1.2 | library | Generate a brand-locked, information-dense single-page PDF that lets a reader understand an entire topic - a company, a product, a project,  |
-| `presentation` | 1.2 | library | Generate a brand-locked multi-slide presentation deck (16:9, 1920x1080) and assemble into a PDF |
+| `explain-visually` | 1.1.1 | library | Explain a complex topic back to you with visuals - the right diagram for each facet (flowchart, timeline, sequence, schema/ER, state machine |
+| `microsite` | 1.6.1 | library | Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-containe |
+| `nano-banana-image-generator` | 1.1.1 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image) |
+| `one-pager` | 1.2.1 | library | Generate a brand-locked, information-dense single-page PDF that lets a reader understand an entire topic - a company, a product, a project,  |
+| `presentation` | 1.2.1 | library | Generate a brand-locked multi-slide presentation deck (16:9, 1920x1080) and assemble into a PDF |
 
 ### workspace
 
