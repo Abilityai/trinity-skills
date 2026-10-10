@@ -9,11 +9,12 @@ requires:
   env: [GOOGLE_TASKS_TOKEN, GOOGLE_TASKS_LIST_ID]
   binaries: [git, gh]
 metadata:
-  mirror: "abilities@d826887 plugins/agent-dev/skills/project-reconcile"
-  version: "1.4"
+  mirror: "abilities@97dc8a8 plugins/agent-dev/skills/project-reconcile"
+  version: "1.4.1"
   created: 2026-07-30
   author: add-project-management
   changelog:
+    - "1.4.1: Fix — the skill runner replaces every dollar-digit placeholder in a skill body with the invocation's arguments, so a run with arguments (project-init platform <slug>, project-status <slug>, --headless task/intake) broke the §0 resolver and the awk field reads: every config key resolved empty. Shell positionals are now ${1}/${2}, awk fields $(0)/$(2). Found 2026-10-10 by the deployed trinity-pm on the first platform import"
     - "1.4: Platform mode (ent#788, ruling R38): on a Trinity instance with Projects enabled, platform-tracked projects feed the registry map from the platform's task list (keyed <slug>/T-NNN) and a completion gesture is written with update_project_task under the platform's lattice. Without Trinity nothing changes"
     - "1.3: One lineage (ent#789): the standard is resolved at the repo root or at fleet/project-standard.md; its §0 Configuration supplies the label vocabulary by role and the state directory — the reconcile log lives under $STATE_DIR/reconcile-log/ (project-steward/ by default, fleet/project-steward/ on an orchestrator); with the done label unset, closing the issue is the done marker; with the pending-verification label unset, an agent-owned completion gesture is verified against the Definition of Done right away instead of parked"
     - "1.2: Internal tracking (ent#673): internal projects' task files join the registry map under the key `[<slug>/T-NNN]` (external keeps `[#NN]`); a check gesture on one writes the task's front matter and an appended Log entry instead of labels and a comment (human owner → status: done; agent owner → pending-verification + pending_since), and the projection item's note carries the task file path. Everything else — gesture typing, absence never authoritative, unkeyed items personal — is unchanged"
@@ -23,7 +24,7 @@ metadata:
 
 # Project Reconcile
 
-> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — e.g. `project-reconcile v1.4 — recent: platform mode on Trinity Projects`. Then proceed.
+> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — e.g. `project-reconcile v1.4.1 — recent: arguments no longer break the config resolver`. Then proceed.
 
 ## Purpose
 
@@ -66,7 +67,7 @@ Resolve the standard — repo root first, then an orchestrator's `fleet/` placem
 
 ```bash
 STANDARD=$(ls PROJECT_STANDARD.md fleet/project-standard.md 2>/dev/null | head -1)
-cfg() { awk -v k="$1" -v d="$2" 'BEGIN{p="^"k":"} /^## 0\. Configuration/{s=1;next} s&&/^```yaml/{f=1;next} f&&/^```/{exit} f&&$0~p{v=$0;sub(p,"",v);sub(/[[:space:]]+#.*$/,"",v);gsub(/^[[:space:]"]+|[[:space:]"]+$/,"",v);print v;found=1;exit} END{if(!found)print d}' "$STANDARD"; }
+cfg() { awk -v k="${1}" -v d="${2}" 'BEGIN{p="^"k":"} /^## 0\. Configuration/{s=1;next} s&&/^```yaml/{f=1;next} f&&/^```/{exit} f&&$(0)~p{v=$(0);sub(p,"",v);sub(/[[:space:]]+#.*$/,"",v);gsub(/^[[:space:]"]+|[[:space:]"]+$/,"",v);print v;found=1;exit} END{if(!found)print d}' "$STANDARD"; }
 REGISTRY=$(cfg registry ""); AGENT_NAME=$(cfg agent ""); OPERATOR=$(cfg operator "")      # empty → take them from the §1/§2 prose (pre-1.3 standard)
 STATE_DIR=$(cfg state_dir project-steward); PV_MAX_AGE=$(cfg pv_max_age_hours 48); QUARANTINE=$(cfg quarantine on); MEMBER_REPOS=$(cfg member_repos "")
 L_OWNER=$(cfg labels.owner_prefix "owner:"); L_PRIORITY=$(cfg labels.priority_prefix "priority:")
