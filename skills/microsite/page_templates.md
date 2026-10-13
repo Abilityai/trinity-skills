@@ -75,10 +75,13 @@ html[data-theme="light"]{
   color-scheme: light;
   --bg:#FAF8F5; --bg-1:#FFFFFF; --bg-2:#F1EEE9;
   --line:#E4E0D9; --line-2:#D4CFC6;
-  --ink:#1A1A1E; --ink-dim:#4A4C58; --ink-mute:#8A8C99;
-  --accent-soft:rgba(184,80,80,.07);
+  --ink:#1A1A1E; --ink-dim:#4A4C58; --ink-mute:#6E7080;   /* #8A8C99 was 3.1:1 on paper - fails AA for 13px labels */
+  --accent-dim:#E2C3C3; --accent-soft:rgba(184,80,80,.07); /* dark #4A2A2A borders read as heavy maroon on paper */
+  --ok:#1F8A5B; --risk:#C2456A; --warn:#9A7415;            /* neon status colors are unreadable as text on paper */
   --shadow:none; --shadow-sm:none;
 }
+/* light-only overrides must not outrank modifier classes: write .bar:not(.hi), never bare .bar */
+html[data-theme="light"] .bar:not(.hi):not(.co){fill:#CBC4B9}
 ```
 
 ### Color discipline (LOCKED)
