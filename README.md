@@ -55,6 +55,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
 | `gemini-critic` | 1.3 | library | Ask Gemini's most powerful model for an independent second opinion - critique code with fresh eyes, evaluate an article, challenge a plan |
+| `nevermined-catalog` | 1.0 | library | Discover and pay per call for external AI and data services from the Nevermined catalog (160+ x402/MPP services — web search, scraping, enri |
 | `repo-velocity` | 1.5 | library | Measure the development speed / velocity / activity of any GitHub repository using objective metrics from the GitHub API — commits, lines ad |
 
 ### visual-communication

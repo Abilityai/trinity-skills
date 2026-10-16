@@ -99,6 +99,7 @@ The runtime fills `$0`, `$1`, `$2` … anywhere in a `SKILL.md` body — code bl
    | Replicate | `REPLICATE_API_TOKEN` |
    | ElevenLabs | `ELEVENLABS_API_KEY` |
    | Vercel | `VERCEL_TOKEN` |
+   | Nevermined | `NVM_API_KEY` (spend scope: `NVM_DELEGATION_ID`) |
 
    A PR introducing a new provider adds its canonical key to this table in the same PR.
 3. **Secrets only in env; config in files.** Non-secret configuration (account IDs, defaults) may ship as a config file inside the skill.
