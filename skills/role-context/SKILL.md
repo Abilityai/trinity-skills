@@ -44,11 +44,11 @@ Load **the seat** into working context before acting on it. A role companion ser
 ```bash
 # Block-style YAML only (one key per line under x-role: / x-canon:); surrounding quotes are stripped.
 unq() { sed -E "s/^[\"']//; s/[\"']\$//"; }
-ROLE=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *role:/{print $2}' template.yaml | unq)
-STATUS=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *status:/{print $2}' template.yaml | unq)
-BRAIN=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *brain:/{print $2}' template.yaml | unq)
-CANON=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/clone_path:/{print $2}' template.yaml | unq); CANON=${CANON:-canon}
-SELF=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/folder:/{print $2}' template.yaml | unq | sed 's#^agents/##; s#/$##')
+ROLE=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *role:/{print $(2)}' template.yaml | unq)
+STATUS=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *status:/{print $(2)}' template.yaml | unq)
+BRAIN=$(awk '/^x-role:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^ *brain:/{print $(2)}' template.yaml | unq)
+CANON=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/clone_path:/{print $(2)}' template.yaml | unq); CANON=${CANON:-canon}
+SELF=$(awk '/^x-canon:/{f=1;next} f&&/^[^ ]/{f=0} f&&/folder:/{print $(2)}' template.yaml | unq | sed 's#^agents/##; s#/$##')
 git -C "$CANON" pull --ff-only 2>/dev/null || echo "CANON_STALE"
 ```
 

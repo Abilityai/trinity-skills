@@ -12,10 +12,11 @@ allowed-tools: Bash, Read, Write, Edit, Glob, AskUserQuestion, Skill
 user-invocable: true
 effort: high
 metadata:
-  version: "1.1"
+  version: "1.1.1"
   created: 2026-06-22
   author: Ability.ai
   changelog:
+    - "1.1.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
     - "1.1: Promoted to the public trinity-skills library — brand-dark preset now cites the vendored brand_defaults.md (swappable DEFAULT palette; the workspace's own design doc wins) instead of a private design-system path, render_html_to_png.py vendored into scripts/, --autonomous headless mode added so the skill is callable as one line, declared requires:/argument-hint + cold-start behavior"
     - "1.0 - initial: decompose topic -> pick modality per facet -> [GATE plan+style] -> render themed Mermaid + /create-explanatory-image -> [GATE visuals] -> compose /one-pager into a single page+PDF. Self-contained (no research). 4 styles + custom; brand-dark default."
 ---
@@ -57,7 +58,7 @@ The deliverable is a **single bundled page (+ PDF)** assembled by `/one-pager`, 
 | a diagram skill | ONE human-composed diagram, brand-locked, for posting. No modality selection, no style control, single artifact. |
 | `/create-explanatory-image` | ONE generative image, iterates to correctness. Great for a metaphor; not multi-modal, not assembled. |
 | `/one-pager` | Dense single page from a brief - text-first. This skill is its **visual front-end**: it produces the *pictures*, then hands them to `/one-pager`. |
-| **`/explain-visually` (this skill)** | Decomposes a topic into facets, picks the **right visual per facet**, renders in a **style you control**, bundles to one page. Mostly $0 (Mermaid); only conceptual-illustration facets cost ~$0.067 each. ~1-3 min. |
+| **`/explain-visually` (this skill)** | Decomposes a topic into facets, picks the **right visual per facet**, renders in a **style you control**, bundles to one page. Mostly free (Mermaid); only conceptual-illustration facets cost ~USD 0.067 each. ~1-3 min. |
 
 ## State Dependencies
 
@@ -77,7 +78,7 @@ or prefix with the directory the skill was injected into.
 |---|---|---|
 | `python3` + Playwright/Chromium | rendering every Mermaid visual | Report the install command (`pip install playwright && playwright install chromium`); **do not claim visuals that were never rendered**. |
 | Network access at render time | Mermaid + Google Fonts load via CDN | See `style_library.md` for offline vendoring; without either, the render fails visibly rather than silently producing an unstyled diagram. |
-| `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | conceptual-illustration facets only | Not fatal — proceed as if `--no-illustrations` was passed and say so in the delivery report. Held by the `/create-explanatory-image` child skill, which fails naming the key. Pure-Mermaid runs cost $0. |
+| `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | conceptual-illustration facets only | Not fatal — proceed as if `--no-illustrations` was passed and say so in the delivery report. Held by the `/create-explanatory-image` child skill, which fails naming the key. Pure-Mermaid runs cost USD 0. |
 
 ## Headless mode (`--autonomous`)
 
@@ -103,7 +104,7 @@ so `--autonomous` must be passed and both gates are skipped. In that mode:
 | `--style` | `brand-dark` | Visual language for ALL diagrams this run. See `style_library.md`. `custom` -> you describe the look and it maps to theme vars. |
 | `--format` | `16:9` | Final bundled-page format (passed to `/one-pager`): `16:9` screen, `a4`/`letter` print. |
 | `--max-visuals` | `5` | Cap on visuals (facets). The decomposition keeps the highest-signal facets up to this cap. |
-| `--no-illustrations` | (off) | Mermaid/structural diagrams only - skip all `/create-explanatory-image` facets. $0, faster, fully deterministic. |
+| `--no-illustrations` | (off) | Mermaid/structural diagrams only - skip all `/create-explanatory-image` facets. free, faster, fully deterministic. |
 | `--autonomous` | (off) | Headless mode for scheduled/unattended runs: skip both approval gates. See Headless mode above. |
 | `--output-dir` | `explain_{slug}/` | Where `visuals/`, the HTML sources, and the final PDF land. Relative to the working directory unless given absolutely. |
 

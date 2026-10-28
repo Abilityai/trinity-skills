@@ -37,10 +37,10 @@ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 MIRROR_RE = re.compile(r"^abilities@[0-9a-f]{7,40} \S+$")
 VERSION_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")
-# `canon:` frontmatter (ent#509/#510, framework E4): the domain ids a skill reads from
-# the fleet canon — ids in `domains.yaml`, or the fixed top-level zones.
-CANON_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
-
+DOLLAR_DIGIT_RE = re.compile(r"(?<![\\$])\$\d+")
+# `canon:` entries are domain ids from the canon's domains.yaml map —
+# lowercase kebab-case, the same shape as a skill name.
+CANON_DOMAIN_RE = NAME_RE
 # `sets:` in catalog.yaml (ent#510) — the SAME rules the platform parser applies
 # (Abilityai/trinity services/skill_sets.py, ent#530 / PR #3005), held strictly
 # here: any problem code the platform would attach is a FAIL, because a set the
@@ -270,6 +270,16 @@ def validate_skill(d):
 
     if fm.get("name") != name:
         fail("frontmatter", f"name: {fm.get('name')!r} != directory {name!r}")
+
+    # Claude Code fills $0, $1, $2 … anywhere in a SKILL.md body with the words the skill
+    # was called with — inside code blocks too — so `awk '{print $2}'` or `"$1"` in a shell
+    # function becomes the caller's text when the skill runs with arguments. $ARGUMENTS is
+    # the intended placeholder and is allowed; write shell ${1}, awk $(2), prose "USD 5".
+    for lineno, line in enumerate(_body.splitlines(), 1):
+        for m in DOLLAR_DIGIT_RE.finditer(line):
+            fail("arg-substitution", f"SKILL.md body line {lineno}: bare {m.group()!r} is replaced by the "
+                 f"invocation's arguments at run time — use ${{N}} (shell), $(N) (awk), or spell out the amount")
+            break
     desc = fm.get("description")
     if not isinstance(desc, str) or len(desc.strip()) < DESCRIPTION_MIN_CHARS:
         fail("frontmatter", f"description missing or under {DESCRIPTION_MIN_CHARS} chars")
@@ -289,14 +299,20 @@ def validate_skill(d):
     if mirror is not None and not (isinstance(mirror, str) and MIRROR_RE.match(mirror)):
         fail("mirror", "metadata.mirror must be 'abilities@<sha> <path-in-abilities>'")
 
-    canon = fm.get("canon")
-    if canon is not None:
+    # Optional `canon:` — the canon domains the skill reads (CONTRIBUTING.md,
+    # "Frontmatter contract"). Shape only: whether a domain exists is the
+    # consuming fleet's canon, which this repo cannot see.
+    if "canon" in fm:
+        canon = fm.get("canon")
         if not isinstance(canon, list) or not canon:
-            fail("canon", "canon: must be a non-empty list of domain ids, e.g. canon: [icp-model, org-context]")
+            fail("canon", "canon: must be a non-empty list of domain ids, e.g. [org-context] (omit the key if the skill reads no canon)")
         else:
-            for c in canon:
-                if not isinstance(c, str) or not CANON_ID_RE.match(c):
-                    fail("canon", f"canon: entry {c!r} is not a domain id (^[a-z0-9][a-z0-9-]{{0,63}}$)")
+            bad = [c for c in canon if not isinstance(c, str) or not CANON_DOMAIN_RE.match(c)]
+            if bad:
+                fail("canon", f"canon: domain ids must be lowercase kebab-case ({CANON_DOMAIN_RE.pattern}): {bad!r}")
+            dupes = sorted({c for c in canon if isinstance(c, str) and canon.count(c) > 1})
+            if dupes:
+                fail("canon", f"canon: duplicate domain ids: {dupes!r}")
 
     declared = []
     req = fm.get("requires")

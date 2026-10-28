@@ -4,12 +4,16 @@ description: Scaffold a Trinity-compatible long-running pipeline inside any agen
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, Skill
 user-invocable: true
 metadata:
-  mirror: "abilities@70c1e60 plugins/agent-dev/skills/add-pipeline"
-  version: "1.7"
+  mirror: "abilities@06679ae plugins/agent-dev/skills/add-pipeline"
+  version: "1.10"
   created: 2026-05-23
-  updated: 2026-07-22
+  updated: 2026-10-20
   author: Ability.ai
   changelog:
+    - "1.10: Trinity 1.0.0 truth sync (v1.0.0 ef8112ee8) — installs pipeline-tick 1.6 (a remote stage refused skill_not_granted escalates with the exact per-skill grant, ent#662) and pipeline-recover 1.3 (a pending escalation made moot by the recovery is withdrawn with withdraw_ask, ent#901)"
+    - "1.9.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
+    - "1.9: Platform-truth refresh (Trinity dev ed5904906, 1.0.0-aws.2) — bundled pipeline-tick 1.5 (ask title cap 120, dismissed disposition, gate results hold or escalate a remote stage, two-argument get_execution_result) and pipeline-recover 1.2 (dismissed disposition)"
+    - "1.8: Platform-truth refresh (Trinity dev 863240f3) — pipeline-tick 1.4 files escalations with ask_operator and reads them back with get_my_ask (ent#611/ent#715; queue file = two-release fallback), chain-depth refusals escalate, never retry (#2806); pipeline-recover 1.1 never calls respond_to_operator_queue (person-only since ent#611)."
     - "1.7: Cross-agent stages — pipeline.yaml stages accept an optional agent: (the stage is that fleet agent's playbook); pipeline-tick 1.3 dispatches it as a one-line playbook call and polls the execution; when-to-use gains the multi-agent-process shape (instance = one run). Fleet convention protocols/playbook-call.md, operator direction 2026-08-16"
     - "1.6: Platform caveat rewritten for ent#89 — Trinity materializes the declared schedules: block at agent creation (disabled unless a literal YAML true, max 20, deduped by name, never re-applied on recreate), so a derived agent DOES get the heartbeat. Dropped the non-schema `id:` key from the scaffold and made `name:` the live schedule name, since Trinity keys idempotency on name — the mismatch produced two heartbeats for one job"
     - "1.5: Fix the scaffolded escalation contract — pipeline-tick now files operator-queue items by writing ~/.trinity/operator-queue.json with an agent-chosen request_id (trinity#1631; send_notification is a different subsystem and returns no queue_id), pipeline-recover resolves via respond_to_operator_queue; Step 7 notes a schedule message naming an uninstalled skill now fails loudly as SKILL_NOT_FOUND (#1410)"
@@ -228,7 +232,7 @@ Use the Trinity MCP tool create_agent_schedule with:
   description: "Heartbeat for the <display name> pipeline."
 ```
 
-These are the tool's real parameters — there is no `schedule_name`, `cron`, `skill`, or `pre_check` param. The `message` is the prompt the agent receives on each trigger, so it must name the skill to run. If the named skill isn't actually installed in the agent container, the run finalizes **FAILED with `SKILL_NOT_FOUND`** and raises an Operating Room item (trinity#1410) — it used to masquerade as a $0 success, so a wrong `message` is loudly visible now.
+These are the tool's real parameters — there is no `schedule_name`, `cron`, `skill`, or `pre_check` param. The `message` is the prompt the agent receives on each trigger, so it must name the skill to run. If the named skill isn't actually installed in the agent container, the run finalizes **FAILED with `SKILL_NOT_FOUND`** and raises an Operating Room item (trinity#1410) — it used to masquerade as a success, so a wrong `message` is loudly visible now.
 
 If Trinity MCP is not available, print:
 

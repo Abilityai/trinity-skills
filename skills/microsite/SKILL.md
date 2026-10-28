@@ -1,21 +1,24 @@
 ---
 name: microsite
-description: Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-contained scrolling HTML page that presents any topic or dataset as a visual story with text, diagrams, charts, KPI strips, and canvas animation, plus optional print-stylesheet PDF export. The web-native sibling of /one-pager (dense PDF page) and /presentation (slide deck) - the mother skill for "make me a nice web page about X". Use for daily/status reports as web pages, topic explainers, workshop pages, project/product showcases, briefing sites. Composes /explain-visually thinking, /create-explanatory-image, /animated-explainer, and the dataviz method behind one consistent UI. Use when someone wants an animated report, a scrolling explainer page, a workshop microsite, or "present this beautifully in the browser".
+description: Build a brand-locked, animated single-page microsite (locked to YOUR palette - the shipped tokens are a swappable default) - a self-contained scrolling HTML page that presents any topic or dataset as a visual story with text, diagrams, charts, KPI strips, and canvas animation, plus optional print-stylesheet PDF export and an optional private share link that can require an email to view and track who reads it (--share --gate). The web-native sibling of /one-pager (dense PDF page) and /presentation (slide deck) - the mother skill for "make me a nice web page about X". Use for daily/status reports as web pages, topic explainers, workshop pages, project/product showcases, briefing sites. Composes /explain-visually thinking, /create-explanatory-image, /animated-explainer, and the dataviz method behind one consistent UI. Use when someone wants an animated report, a scrolling explainer page, a workshop microsite, or "present this beautifully in the browser".
 category: visual-communication
 automation: gated
-argument-hint: "<source material or path> [--preset report|explainer|showcase] [--theme dark|light] [--autonomous] [--pdf] [--inline] [--share] [--output-dir PATH]"
+argument-hint: "<source material or path> [--preset report|explainer|showcase] [--theme dark|light] [--autonomous] [--pdf] [--inline] [--share [--gate [--soft]]] [--output-dir PATH]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Skill, AskUserQuestion
 user-invocable: true
 effort: high
 requires:
-  env: [GEMINI_API_KEY, GOOGLE_API_KEY, VERCEL_TOKEN]
+  env: [GEMINI_API_KEY, GOOGLE_API_KEY, VERCEL_TOKEN, GATE_DATABASE_URL, GATE_REPORT_TOKEN]
   binaries: [python3]
   packages: [playwright]
 metadata:
-  version: "1.5"
+  version: "1.7"
   created: 2026-07-29
   author: Ability.ai
   changelog:
+    - "1.7: Field lessons folded back from the authoring copy (1.9-1.13) - (a) `--share --gate`: a mandatory email step enforced by a Vercel middleware (page and assets are not served without a signed cookie) plus first-party view tracking - active seconds per section, outbound clicks, place, referrer and the `?r=<tag>` on the link, anonymous from the first hit and named once an email arrives; kit in `scripts/gate/`, events in one Postgres you own (table created on first write), read back from the project's token-protected `/api/report`; a gated project refuses an ungated redeploy unless `--ungate`. (b) `--gate --soft`: no wall, tracking unchanged, a dismissible card asks for an email after ~45 active seconds - preferred, because the mandatory form loses readers. (c) Light theme completed - re-mapped --accent-dim, --ok/--risk/--warn and an AA-passing --ink-mute on paper, plus three light-switch traps. (d) Traps: half-width data charts scroll inside their card, CDN avatar URLs that refuse curl, and pages built by line range from a live sibling page. Gate config is env-first (GATE_DATABASE_URL, GATE_REPORT_TOKEN), file fallback; VERCEL_TOKEN now also authenticates the link/env calls"
+    - "1.6.1: Fix — the runtime replaces every dollar-digit placeholder in a skill body with the words the skill was invoked with, so dollar-digit text here was rewritten on runs with arguments. Shell positionals are now ${0}/${1}, intended placeholders $ARGUMENTS[0], and prices are written in USD (library validator rule arg-substitution, 2026-10-10)"
+    - "1.6: Field lessons folded back from the authoring copy (library becomes the single source) - (a) density pass: new Step 3b + page_templates.md §10 (takeaway first, one row per item, one home per fact, no sentences about the document, verbatim zones protected, word budget measured BEFORE promising a cut); check_page.py now reports words per section + words_total; long review documents may exceed 6-10 sections when a sticky block-index rail (§4) carries navigation; new grammar S14 takeaway bar, S15 field-list item, S16 stage matrix, provenance chips. (b) count-up is for magnitudes, not precision - render four-decimal figures literally; a hero scrim radial can erase the canvas it covers (§6). (c) troubleshooting rows: lazy-loaded images read as broken by the checker, 390px layout traps (nowrap caption chips, nested grids, nested-table min-widths, flex headers), SVG annotation collisions, multi-scope Vercel accounts (--scope), hero-canvas node labels drifting over the headline"
     - "1.5: Promoted to the public trinity-skills library — brand-neutralized (page_templates.md §0 makes the palette a swappable DEFAULT and defers to the consuming workspace's own design doc; the discipline rules stay locked), --share made headless-capable via VERCEL_TOKEN, Drive delivery removed, skill-relative script paths, sibling-skill references made optional, declared requires:/argument-hint + cold-start behavior"
     - "1.4: Print trap - .count spans print as $0 (observer-gated); every count-up needs a print-only .pn twin with the final value (recipe in page_templates.md §7)"
     - "1.3: Canvas trap documented in page_templates.md §6 - absolutely-positioned canvas needs explicit width/height:100% (replaced element stays at intrinsic 300x150 under inset:0 alone; symptom: drawing huddles top-left)"
@@ -78,6 +81,8 @@ imagery skills below are true optional collaborators.
 | Verification rig | `scripts/check_page.py` | run | ❌ |
 | PDF export | `scripts/export_pdf.py` | run | ❌ |
 | Vercel share deploy | `scripts/share_vercel.py` (needs `VERCEL_TOKEN`) | run when `--share` | ❌ |
+| Email gate + view tracking kit (middleware, `/api/gate`, `/api/t`, `/api/report`, gate page, tracker, soft ask card) | `scripts/gate/` | staged into the deploy when `--gate` | ❌ |
+| Gate config: shared events database URL + report token | env `GATE_DATABASE_URL` / `GATE_REPORT_TOKEN`, else `~/.config/microsite/gate.env` (or `$MICROSITE_GATE_ENV`) - never in a repo | ✅ first time a project is gated | ❌ |
 | The page + assets | `{output-dir}/{slug}.html` + `assets/` | ✅ | ✅ |
 | Locked content record | `{output-dir}/source.md` | ✅ | ✅ |
 
@@ -100,14 +105,15 @@ prefix with the directory the skill was injected into.
 | Requirement | Needed for | Missing → |
 |---|---|---|
 | `python3` + Playwright/Chromium | Step 7 verification, Step 9 PDF | Report the install command (`pip install playwright && playwright install chromium`); **never claim verification that didn't run**. |
-| `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | generated imagery only | Not fatal - build the page imagery-free (the grammar degrades gracefully) and say so in the delivery report. Imagery-free runs cost $0. |
+| `GEMINI_API_KEY` (fallback `GOOGLE_API_KEY`) | generated imagery only | Not fatal - build the page imagery-free (the grammar degrades gracefully) and say so in the delivery report. Imagery-free runs cost USD 0. |
 | `VERCEL_TOKEN` | `--share` only | Fail that step naming the key (`VERCEL_TOKEN not set - add it to this agent's credentials`); the local page is still THE deliverable. An interactively-logged-in Vercel CLI also works for a human at a terminal, but a headless agent needs the token. |
+| `GATE_DATABASE_URL` + `GATE_REPORT_TOKEN` (env, or the gate config file) | `--gate`, first time a project is gated (redeploys reuse the project's own env vars) | Fail that step naming the missing key. `GATE_DATABASE_URL` is any Postgres connection string (a free Neon database works); the kit creates its one table on first write. Use one database for all gated pages so they read back in one place. `GATE_REPORT_TOKEN` is any long random string you keep. |
 
 ## Inputs
 
 ```
 /microsite [source] [--preset report|explainer|showcase] [--theme dark|light]
-           [--autonomous] [--pdf] [--inline] [--share] [--output-dir PATH]
+           [--autonomous] [--pdf] [--inline] [--share [--gate [--soft]]] [--output-dir PATH]
 ```
 
 | Flag | Default | Description |
@@ -119,6 +125,8 @@ prefix with the directory the skill was injected into.
 | `--pdf` | (off) | Also export the print-stylesheet PDF companion. |
 | `--inline` | (off) | Single-file build: base64-embed images within the 1.5MB budget (`page_templates.md` §8). Default is a sibling `assets/` folder. |
 | `--share` | (off) | After Gate 2 approval, publish the page to Vercel as a **private share link** via `scripts/share_vercel.py`: a throwaway project per share named `ms-{24 hex chars}` - **hard to guess** (96 random bits, no content hint in the hostname; kept short because Vercel truncates long names in the URL, which would cut the entropy; wildcard `*.vercel.app` cert keeps the hostname out of certificate-transparency logs) and **non-indexable** (`X-Robots-Tag: noindex, nofollow, noarchive` header + injected `meta robots`, local file untouched). Reachable only by people given the link. Production deploy (Vercel's preview URLs sit behind an auth wall that would block recipients). The page does NOT auto-expire; "temporary" = removable with the reported one-liner (`echo y \| vercel project rm <project>`). Requires the Vercel CLI plus `VERCEL_TOKEN` (or an interactively logged-in CLI). Can also be requested at Gate 2 without the flag. |
+| `--gate` | (off) | With `--share` (needs `--scope`): put the page behind a **mandatory email step and record who reads it**. A middleware serves only an email form until an address is given (signed cookie, 90 days, no verification - a typed address is taken as given); the page and its `assets/` are not served without it. A first-party tracker then records active seconds per section, outbound link clicks, city/country, referrer and the `?r=<tag>` on the link. Visitors are tracked anonymously from the gate onward and their earlier visits are named once they give an email. Gate and tracker are injected into the staged copy - the local page is untouched. **Use it when knowing who read the page matters**: investor and fundraising pages, sales or partner decks sent to named prospects, proposals. **Offer it at Gate 2** for any such page even when the flag was not passed. **Do not use it** for workshop pages, public-ish explainers, internal reports or pages for existing clients - the form costs opens and the data is not needed. Once a project is gated, every redeploy must carry `--gate` (the script refuses otherwise; `--ungate` removes it on purpose). Read the results from the project's `/api/report` with the report token (Step 10). |
+| `--soft` | (off) | With `--gate`: **open page, polite ask**. No wall - anyone with the link reads the page and is tracked anonymously; after ~45 active seconds a small corner card asks for an email, closes on one click and never blocks reading. Asked at most once per visit, never again in a browser that gave one. **Prefer this over the hard gate** unless the page must not be readable by an unidentified visitor: the mandatory form loses readers before they see anything. Trade-off to state at Gate 2: most readers stay anonymous (place, time, sections, tag only), and the page and `assets/` are served to anyone holding the link. A redeploy must repeat `--gate --soft` or the wall comes back. |
 | `--output-dir` | see below | Where the page lands. Default: `session-files/{YYYY-MM-DD}_{slug}_microsite/` if the workspace has a `session-files/` convention, else `./microsite_{slug}/`. Never a scratchpad - the page is a durable deliverable. |
 
 ## Process (transactional)
@@ -160,7 +168,33 @@ needs semantic concept colors (≥3 recurring concepts) or stays red+grayscale.
 
 Mark every fact the source doesn't supply as `[NEEDS: ...]`. Keep 6-10 sections; if the
 plan exceeds that, cut the weakest - a microsite that scrolls forever is a document that
-should have been a `/one-pager`.
+should have been a `/one-pager`. **Exception - long review documents** (a strategy, an
+audit, a report whose caller requires every block to stay visible): more sections are
+allowed when a sticky block-index rail carries the navigation (`page_templates.md` §4) and
+the density pass below is applied. Say which rule you are using in the Gate 1 plan.
+
+### Step 3b: Density pass (any page built from long prose)
+
+When the source is a long document rather than raw data, plan the *edit*, not just the
+layout. The reader's complaint on long pages is "water": the same fact said three times,
+findings written as essays, sentences about the document itself. Apply
+`page_templates.md` §10:
+
+1. **Takeaway first.** Each section opens with one bold sentence saying what the reader
+   should conclude or do (S14). It replaces the closing "therefore/in summary" paragraph -
+   never both.
+2. **One row per item.** Findings, competitors, messages, measures become table rows or
+   field lists (S15): the claim with its numbers | what we do | source. A "meaning" line
+   that restates the finding folds into the finding's headline.
+3. **One home per fact.** A rule or clearance lives in exactly one section; everywhere else
+   points to it instead of restating it.
+4. **Cut sentences about the document** ("none of this is padding", "here is the explicit
+   decision you asked for", "status is not advisory").
+5. **Protect verbatim zones.** Quotes, endorsed wording, ready-to-use answers, headline
+   banks: never paraphrased to save words.
+6. **Measure before promising.** Count the source's words (or the previous render's, via
+   `check_page.py`) and the verbatim share *first*; quote a reduction target only on the
+   compressible remainder. Report the achieved number honestly at Gate 2.
 
 ### Step 4: [APPROVAL GATE 1 - PLAN + CONTENT] *(skipped with `--autonomous`)*
 
@@ -203,6 +237,10 @@ mechanical breakage; only eyes catch a cramped grid, an unreadable chart, a hero
 that kills the canvas. Also re-check at mobile width:
 `check_page.py {slug}.html --width 390 --no-shots`.
 
+The report also carries `words` per section and `words_total` - use them for the density
+budget (Step 3b) and to spot the section that is still carrying water. The sticky nav
+appears overlaid mid-screenshot on tall sections; that is a capture artifact, not a bug.
+
 ### Step 8: [APPROVAL GATE 2 - VISUAL] *(skipped with `--autonomous`)*
 
 Open the page for the operator (`open {output-dir}/{slug}.html`) and ask via `AskUserQuestion`:
@@ -238,6 +276,20 @@ final frame. Skim the PDF - it's a companion, but a broken companion still ships
   page stays up until removed. Never share an unapproved page; in `--autonomous` mode
   share only when the flag was explicitly passed, and include the URL in the final
   report.
+- If `--gate` (with `--share`, or agreed at Gate 2): add `--gate --scope <scope>` to the
+  same command. The script lays the stage out as `public/` + `middleware.js` + `api/`,
+  links the project, sets any missing `GATE_*` env vars and deploys. Then verify, never
+  assume: `curl -s <url>/ | grep -c 'Work email'` is 1, the same fetch contains none of the
+  page's section ids, and `curl -s -o /dev/null -w '%{http_code}' <url>/assets/<any file>`
+  is 401. Tell the user three things: links they send should carry `?r=<tag>` per
+  recipient, people who already hold the link will meet the form, and views are read with
+  `curl -s -H "Authorization: Bearer $GATE_REPORT_TOKEN" <url>/api/report` (viewers,
+  seconds per section, clicks; `?pages=1` lists every gated page in the database). Write
+  the redeploy command **with `--gate`** into `source.md`.
+- If `--gate --soft`: same command plus `--soft`. Verify differently: `curl -s <url>/` contains
+  the page's section ids and `ms-ask`, and no `Work email`; an asset returns 200;
+  `curl -s <url>/api/gate` returns `{"known":false}`; `/api/report` without the token is 401.
+  Write the redeploy command with **both flags** into `source.md`.
 - If the run produced a surfaceable result on a schedule (autonomous report mode) and
   `mcp__trinity__report` is available, publish a short report
   (`report_type: microsite.build`, markdown display hint: page path + sections +
@@ -247,7 +299,8 @@ final frame. Skim the PDF - it's a companion, but a broken companion still ships
 
 - [ ] Source was substantive; zero invented facts; `[NEEDS:]` gaps resolved (gated) or omitted + reported (autonomous)
 - [ ] Data interrogated - no section animates a number the data doesn't support
-- [ ] Section plan fits the grammar; 6-10 sections; semantic colors only if ≥3 bound concepts
+- [ ] Section plan fits the grammar; 6-10 sections (or the long-document exception with a block-index rail); semantic colors only if ≥3 bound concepts
+- [ ] Prose-sourced pages: density pass applied (takeaway first, one row per item, one home per fact, verbatim zones intact); word count before/after reported
 - [ ] Gate 1 approved (or `--autonomous`); `source.md` written
 - [ ] Page authored from the shared shell - not a bespoke shell; brand resolved per §0
       (workspace design doc if present, defaults otherwise)
@@ -257,6 +310,7 @@ final frame. Skim the PDF - it's a companion, but a broken companion still ships
 - [ ] Gate 2 approved (or `--autonomous`)
 - [ ] Delivered: page opened, folder opened, paths reported; PDF built if requested; footer stamps the data date
 - [ ] If shared: deploy ran only after approval; share URL AND removal command reported
+- [ ] If gated: the bare URL returns the email form and no page content (or, `--soft`, the page plus `ms-ask`), assets return 401 (hard gate), `source.md` carries the redeploy command with the same flags, `?r=<tag>` and the report command were explained
 
 ## Error Recovery
 
@@ -269,6 +323,24 @@ final frame. Skim the PDF - it's a companion, but a broken companion still ships
 | Canvas insert misbehaves | Its reduced-motion static frame is the fallback: gate the rAF loop off and ship the still. A canvas is never allowed to break the page. |
 | PDF looks wrong | Fix the print stylesheet (§7), re-export. Don't hand-edit the PDF; don't let PDF needs distort the web page - the page is primary. |
 | `--inline` exceeds budget | Switch to `assets/` folder layout and say so. |
+| check_page.py reports broken_images but the files exist and open fine | Cause: `loading="lazy"` - the checker reads `naturalWidth` before any scroll, so below-fold images have legitimately not loaded. Remove `loading="lazy"`. A microsite carries a handful of images; eager decoding also means no pop-in while presenting. |
+| Overflow only at 390px, and the culprit is a label chip | A `white-space:nowrap` chip carrying a long caption is wider than the phone. Let caption chips wrap (`.cap .ch{white-space:normal}`); keep nowrap only for short tokens. Find the culprit with a `getBoundingClientRect().right > clientWidth` sweep that skips elements inside scroll containers. |
+| A table nested in a narrow column is cut off on the right | Its `min-width` (sized for full-width tables) exceeds the column, so it scrolls inside the card. Give nested tables a smaller min-width class (~520px) and let them wrap; reserve 720-1000px min-widths for full-width tables. |
+| A card header with a count chip spills out of the card | `display:flex` header without `flex-wrap:wrap`; the chip cannot drop to its own line. Add `flex-wrap:wrap` and a row gap. |
+| A grid nested inside a grid column overflows on mobile | The inner grid's implicit column sizes to content. Declare `grid-template-columns:minmax(0,1fr)` on the inner grid. |
+| The page reads as padded even though every section is on-grammar | Density failure, not layout: run the Step 3b pass - move each section's conclusion to the top, turn prose findings into rows, give every repeated rule one home, and check `words` per section for the heaviest offenders. |
+| Hero canvas looks blank/empty (rAF loop is fine) | The scrim is erasing it - a radial that hits `var(--bg)` by 72% wipes the off-centre composition. Re-layer per `page_templates.md` §6; verify on the hero screenshot, not the checker. |
+| A KPI screenshot shows a number that is not the real value | Count-up mid-flight. Fine for magnitudes, wrong for precision figures - render four-decimal values literally (§6). |
+| An SVG annotation overlaps a bar | Move the label into empty plot space with a leader line rather than nudging it along the same axis; a first relocation that stays on the collision axis usually still collides. |
+| Hero canvas labels sit on top of the headline or are cut off at the right edge | Nodes placed on a free circle around an off-centre anchor spill into the text column and past the viewport. Clamp node x to `[W*0.58, W-70]` (asymmetric left/right radius) and centre labels above/below the node instead of left/right of it. Verify on the hero screenshot. |
+| share_vercel.py exits "multiple Vercel scopes" | The account belongs to several Vercel teams/scopes; pass `--scope <your-scope>` and re-run. Not a failure of the page. |
+| A line chart inside a half-width grid cell shows its last point cut off and 10px axis text | The chart SVG carries `min-width:600px` for mobile scrolling, and a ~560px cell is narrower than that, so the card scrolls internally on desktop and the viewBox is squeezed. Data charts go full width (`.chart.full`, one per row); only sparkline-class visuals belong side by side. |
+| Team or partner photos: the image CDN returns 403 to curl | Signed social-network CDN URLs (LinkedIn's among them) reject unauthenticated fetches regardless of headers. Screenshot the profile card from a logged-in browser and crop the avatar from the capture; never hotlink the CDN URL into the page. |
+| A rebuild of a page forked from another page yields extra/duplicate sections, wrong symbol defs, or a different section count - with no error | The build slices the parent page by line range and the parent has since been edited, so every range is shifted. Never build from a live sibling: copy the parent into `build/<name>_vX.Y_snapshot.html` and read that; keep the last published render (fetch it from the share URL if the HTML is untracked) as `build/deployed_vX.Y_reference.html` and diff the new build against it before deploying - the only lines that differ must be the ones you meant to change. Say `written N sections` in the assembler and compare it to `source.md` every run. |
+| Switching an existing page to `--theme light`: the accent bar turns grey, a highlighted tile turns muddy beige, the canvas looks washed out or blocky | Three separate light-theme traps. (1) A light-only rule like `html[data-theme="light"] .bar{}` outranks `.bar.hi` - scope it `.bar:not(.hi)`. (2) A translucent tint (`rgba(...,.06)`) on a joined-grid tile lets the grid's `var(--line)` gap background bleed through - use an opaque `color-mix(in srgb,var(--accent) 6%,var(--bg-1))`. (3) Canvas code hard-codes dark-theme rgba (grey dots, accent band alpha) - read `data-theme` in the canvas script and pick darker dots and a fainter band (~.035) on paper. Snapshot the dark build into `build/` before flipping. |
+| share_vercel.py exits "project is gated" on a redeploy | The project already carries the email gate and the command has no `--gate`; deploying as asked would publish the page open and untracked. Add `--gate` (and `--soft` if it was soft). Only pass `--ungate` when the user asked for the gate to come off. |
+| `--gate` exits "GATE_DATABASE_URL is not set on the project and not in <config>" | First gating of a project on a machine without the config (an agent container, a new laptop). Set `GATE_DATABASE_URL` and `GATE_REPORT_TOKEN` in the environment (agent credentials), or copy the two-line config file from the machine that has it, or point `MICROSITE_GATE_ENV` at it. Do not create a second database for one page - one store keeps every page in one report. |
+| A gated page shows the form again to someone who already entered an email | Expected after 90 days, in another browser or device, or in a private window - the cookie is per browser. Each new browser is a new anonymous visitor until the email is given again; the report merges them by email. |
 | Vercel share deploy fails | Check `VERCEL_TOKEN` (or `vercel whoami`) and the CLI install; retry once. The local page is still THE deliverable - report it delivered and the share as failed with the fix. Never block delivery on the share. |
 
 ## Related skills

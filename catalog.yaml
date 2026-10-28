@@ -19,6 +19,7 @@ providers:    # canonical env key per credential provider (rules in CONTRIBUTING
   replicate: REPLICATE_API_TOKEN
   elevenlabs: ELEVENLABS_API_KEY
   vercel: VERCEL_TOKEN
+  nevermined: NVM_API_KEY
 
 # Skill sets (ent#510) — a named family of this library's own skills, assigned to an agent in one act
 # (`set:<name>`) and kept current as a unit by the platform (ent#530). Schema = the platform parser's:
