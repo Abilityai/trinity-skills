@@ -44,6 +44,7 @@ Every skill declares `category:` from this enum (CI-enforced):
 | `research-and-analysis` | Gathering and judging external information |
 | `workspace` | Git, hygiene, self-diagnostics, skill authoring |
 | `project-management` | Backlogs, task registries and the project lifecycle — GitHub Issues as the shared ledger |
+| `role-companions` | Role companions — the role pack a seat's companion runs on, and the brain side of the learning loop |
 
 The enum lives in `catalog.yaml` (`categories:`) — the validator reads it from there. Extending it is a PR to `catalog.yaml` and this file together.
 
@@ -77,11 +78,37 @@ Rules:
   canon: [org-context, icp-model]
   ```
 
-  It is a declaration of need, not a permission — the canon is readable by every agent in the fleet — so context loading is explicit and reviewable instead of discovered at run time. Omit the key when the skill reads no canon. The validator checks the shape only (a non-empty list of lowercase kebab-case ids, no duplicates); whether a domain exists is the consuming fleet's canon, which this repo cannot see.
+  It is a declaration of need, not a permission — the canon is readable by every agent in the fleet — so context loading is explicit and reviewable instead of discovered at run time. Omit the key when the skill reads no canon — except in the `role-companions` category, where it is **required** (those skills exist to read a seat's canon; the validator fails one without it). The validator checks the shape only (a non-empty list of lowercase kebab-case ids, no duplicates); whether a domain exists is the consuming fleet's canon, which this repo cannot see.
 
   **Parser note:** `canon:` is not part of the Trinity platform's skill contract. The platform's frontmatter parser (`skill_packaging.extract_contract`) is tolerant and ignores keys it does not know, which is what makes this field free today. If that parser is ever made strict, it would reject every skill carrying `canon:` — so a strict parser must allowlist `canon` first. CI's platform-parity step (below) is where that break would surface.
 - Unknown keys are tolerated by the platform parser, but don't invent fields — propose them here first.
 - **Callable as one line.** A library skill may be invoked by a schedule, an orchestrator, or another agent as a single `/name [args]` message (the fleet's playbook-call convention). It must therefore run correctly from that one line: declare its inputs in `argument-hint`, and if it has approval gates, declare and implement a headless mode (`--autonomous`) — a gated skill invoked unattended blocks on a prompt nobody sees. The SKILL.md is the contract; no input/output schema is required.
+
+## Library vs agent skill
+
+**"Would you want this skill unchanged in another company tomorrow?"** Yes → it belongs in this library. A skill
+that only makes sense for one agent's data ("refresh the CMO's ICP model from HubSpot") is an agent skill and
+stays in that agent's repo.
+
+## Skill sets (`sets:` in catalog.yaml)
+
+A set is a named family of **this library's own skills**, assigned to an agent in one act (`set:<name>`) and kept
+current as a unit by the platform. The schema is the platform parser's, and `tools/validate.py` holds it to the
+platform's rules — anything the platform would list as `partial` or `invalid` fails CI here:
+
+```yaml
+sets:
+  role-pack:
+    description: "One line — what the family is for."
+    skills: [role-context, daily-brief]          # members: skills in THIS library
+    requires: {env: [SOME_KEY]}                  # optional: prerequisite env keys
+    schedules:                                   # optional: SUGGESTIONS, never created by the platform
+      - name: "Daily brief"
+        cron: "30 7 * * 1-5"                     # five fields
+        message: /daily-brief                    # a one-line playbook call to a skill in this library
+```
+
+A set's name may not equal a skill's name. Bounds: 50 sets, 100 members, 10 schedules, 20 env keys.
 
 ### No bare dollar-digit in a skill body
 

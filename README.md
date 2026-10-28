@@ -59,6 +59,18 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `nevermined-catalog` | 1.0 | library | Discover and pay per call for external AI and data services from the Nevermined catalog (160+ x402/MPP services — web search, scraping, enri |
 | `repo-velocity` | 1.5 | library | Measure the development speed / velocity / activity of any GitHub repository using objective metrics from the GitHub API — commits, lines ad |
 
+### role-companions
+
+| Skill | Version | Origin | Description |
+|---|---|---|---|
+| `adopt-lesson` | 1.1 | library | Decide what this seat does with a lesson the fleet's brain synthesised — adopt, adapt, or decline, always with the why — and record it in th |
+| `capture-feedback` | 1.1 | library | Capture structured feedback on what this companion produced — who, about which output, what was wrong, what good looks like — into the seat' |
+| `daily-brief` | 1.1 | library | Write the seat's daily brief for its primary human — objective status with freshness, gaps as deltas, today's three, one stop-doing, what is |
+| `record-decision` | 1.1 | library | Record a seat-level decision — what was approved, deferred or killed, the alternatives that were live, the criterion that made the winner wi |
+| `report-observation` | 1.1 | library | At the end of a cycle, write what this seat tried and what it measurably changed — role, team, objective, the specific action, a before/afte |
+| `role-context` | 1.1 | library | Load the seat this companion serves into working context — the role file, the objectives it owns or supports with target vs actual, the cano |
+| `synthesise-lessons` | 1.1 | library | The brain side of the learning loop — take observations in from role companions with a receipt, and weekly per role family turn corroborated |
+
 ### visual-communication
 
 | Skill | Version | Origin | Description |
