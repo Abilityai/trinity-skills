@@ -9,10 +9,11 @@ requires:
   binaries: [git]
 canon: [org-context]
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-09-28
   author: Ability.ai
   changelog:
+    - "1.1: Review fixes (trinity-skills#2) — --preview neither reads nor writes the one-per-day key, so calibration previews can be repeated and never use up the day's scheduled brief"
     - "1.0: Initial version (ent#510, Tandem framework) — the six-section brief built from role-context + get_objectives (never a re-derived gap) + operator-queue items and reminders + own schedules; standing could-not-see line and coverage (readable ÷ declared systems) from the role file's systems: block; one brief per person per day; blameless, no named cross-team comparisons; refuses to run as a scheduled brief while x-role.status is calibrating (--preview for the reviewer); the reply is the brief (deliver_to_workspace_email lands it in the person's Main chat)"
 ---
 
@@ -25,7 +26,7 @@ The companion's proactive surface: **one brief per person per day**, objective-d
 ## Guards (before anything else)
 
 1. **Readiness.** Read `x-role.status` from `template.yaml`. `calibrating` and this is a scheduled run → stop with one line: `brief held — seat is calibrating (the owner flips it to ready after the walkthrough)`. The platform also holds a calibrating seat's brief schedule; this guard keeps a hand-made schedule from leaking one. `--preview` runs the full brief for the reviewer during calibration and says `PREVIEW — not delivered as a brief` on its first line.
-2. **One per person per day.** State file `.trinity/daily-brief/last.json`, keyed by period (`{"daily": "YYYY-MM-DD", "weekly": "YYYY-MM-DD", …}`) so a `--weekly` run never clears the daily guard. This period's key already holds today's date → stop: `already briefed today`. A legacy single-slot file (`{"date", "period"}`) is read as `{<period>: <date>}`. Other companions of the same person feed this one rather than sending their own (Tandem framework) — if a peer companion's note arrived for inclusion, it goes into section 6.
+2. **One per person per day.** State file `.trinity/daily-brief/last.json`, keyed by period (`{"daily": "YYYY-MM-DD", "weekly": "YYYY-MM-DD", …}`) so a `--weekly` run never clears the daily guard. This period's key already holds today's date → stop: `already briefed today`. **`--preview` skips this guard and never writes the key** (Step 5): a preview is not a brief, so a reviewer can preview as often as calibration needs, and the day's scheduled brief still runs once the seat is `ready`. A legacy single-slot file (`{"date", "period"}`) is read as `{<period>: <date>}`. Other companions of the same person feed this one rather than sending their own (Tandem framework) — if a peer companion's note arrived for inclusion, it goes into section 6.
 3. **Addressed.** A scheduled run with no person in its Execution Context (no seat it serves) → stop: `brief schedule is not addressed to a person — set deliver_to_workspace_email`.
 
 ## Process
@@ -72,7 +73,7 @@ Coverage: <readable>/<declared> systems (<pct>%) | n/a — reach undeclared
 
 ### Step 5: Record and reply
 
-Set this period's key in `.trinity/daily-brief/last.json` to today (keep the other periods' keys), then reply with the brief. Nothing else goes in the reply.
+Unless this is a `--preview` run, set this period's key in `.trinity/daily-brief/last.json` to today (keep the other periods' keys). A `--preview` run leaves the file untouched. Then reply with the brief. Nothing else goes in the reply.
 
 ## Error handling
 

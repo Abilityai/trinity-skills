@@ -7,11 +7,13 @@ user-invocable: true
 argument-hint: "[<existing observation path> | <what changed, in words>]  (no argument = scheduled cycle scan)"
 requires:
   binaries: [git]
+canon: [org-context]
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-09-28
   author: Ability.ai
   changelog:
+    - "1.1: Review fixes (trinity-skills#2) — declares canon: [org-context]; urgent: true only for an objective the canon explicitly marks ruin-class (the one definition, shared with synthesise-lessons intake)"
     - "1.0: Initial version (ent#510, Tandem framework, observation grammar) — builds the observation from the seat (role-context) and the metric's own points (get_metrics — the delta is measured, never estimated), refuses a claim with no measured before/after, window or n; writes agents/<self>/observations/<date>-<slug>.yaml, publishes it (/canon-publish, own folder), then hands the path@sha to the brain named in x-role.brain for intake (/synthesise-lessons --intake) and relays its receipt; ruin-class objectives are marked for same-day review"
 ---
 
@@ -50,7 +52,7 @@ Required, and each is **checked, not assumed**:
 
 **Refuse, with a reason, and write nothing** when the before/after cannot be measured, the window or n is unknown, or the claim is prose only ("it felt faster"). Tell the person what measurement would make it reportable (in a no-argument run, put it in the one-line reply instead). The brain rejects such reports at intake anyway (Tandem framework); refusing here keeps the canon clean.
 
-An objective the role files mark ruin-class (compliance, safety, money — the objective's `notes` or the role's) → add `urgent: true`; the brain reviews it the same day.
+**Ruin-class** (the one definition — `/synthesise-lessons` intake applies this same test): an objective is ruin-class only when the canon **marks it so explicitly** — the literal word `ruin-class` in the objective's own `notes` or in the role file's `notes` naming that objective id. Its topic never makes it ruin-class: an objective about revenue, pricing or compliance that carries no marker is an ordinary objective. A ruin-class objective → add `urgent: true`; the brain reviews it the same day. Anything else → `urgent: false`.
 
 ### Step 3: Write and publish
 

@@ -9,10 +9,11 @@ requires:
   binaries: [git]
 canon: [org-context]
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-09-28
   author: Ability.ai
   changelog:
+    - "1.1: Review fixes (trinity-skills#2) — loads and counts only canonical lessons (promoted by the brain owner); a draft is never guidance in force, even if an adoption entry names it; awk positionals written as $(2) for the library's arg-substitution gate"
     - "1.0: Initial version (ent#510, Tandem framework) — resolves x-role → roles/<id>.yaml (vacant → defaults_to), who fills the seat via get_agent_assignments (with role-drift flag), objectives via get_objectives (never re-derives a gap), the role's inputs + declared canon: domains through domains.yaml with freshness, the role's systems: block (the canon role-schema shape: id, direction, identity, authority, metrics, domains — ent#639), open calibration notes (capture-feedback) and adopted lessons (adopt-lesson); prints one Role context block and names every source it could not read"
 ---
 
@@ -104,8 +105,8 @@ Carry the list forward; `/daily-brief` decides which were readable this period. 
 ### Step 7: Calibration notes and adopted lessons
 
 - Open calibration notes: `$CANON/agents/$SELF/feedback/*.yaml` whose `action: calibration-note` and `status: open`. These are the reviewer's corrections from the calibration loop — **read them before acting**, and apply them.
-- Adopted lessons: `$CANON/agents/$SELF/adoptions.yaml` entries with `decision: adopt | adapt`, joined to the lesson file in `$CANON/agents/$BRAIN/lessons/`. Keep each lesson's `conditions` — a lesson without its context is invalid (Tandem framework). An `adapt` carries its own `why`, which scopes it.
-- New lessons for this role that have no adoption entry yet → count them (`<n> new lesson(s) — /adopt-lesson`).
+- Adopted lessons: `$CANON/agents/$SELF/adoptions.yaml` entries with `decision: adopt | adapt`, joined to the lesson file in `$CANON/agents/$BRAIN/lessons/` — **only when that lesson is `status: canonical` with `promoted_by` set** (promoted by the brain's owner). A draft, superseded or expired lesson is never guidance in force, even if an adoption entry names it; list it as `lesson <id>: no longer canonical`. Keep each lesson's `conditions` — a lesson without its context is invalid (Tandem framework). An `adapt` carries its own `why`, which scopes it.
+- New **canonical** lessons for this role that have no adoption entry yet → count them (drafts are not counted) (`<n> new lesson(s) — /adopt-lesson`).
 
 ### Step 8: Print the Role context block
 

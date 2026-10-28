@@ -7,11 +7,13 @@ user-invocable: true
 argument-hint: "[--calibration] [about <execution-id | brief YYYY-MM-DD>] <what was wrong / what good looks like>"
 requires:
   binaries: [git]
+canon: [org-context]
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-09-28
   author: Ability.ai
   changelog:
+    - "1.1: Review fixes (trinity-skills#2) — declares canon: [org-context]; the duplicate-alert rule no longer assumes the agent can see Workspace ratings: it alerts only for a problem reported to it in conversation, never for one the person says they already reported through the Workspace, and dedupes against its own report-problem entries for the same output"
     - "1.0: Initial version (ent#510, Tandem framework) — one lintable feedback entry per capture in agents/<self>/feedback/<date>-<slug>.yaml (rating, about, what_was_wrong, what_good_looks_like, action, status); calibration notes are read by role-context before every run; a proposed change to the companion's own playbooks goes to the operator queue and is applied only after approval; a negative rating the platform has not already escalated raises one bounded operator-queue alert; published through /canon-publish (own folder only). Generalises the capture → sheet → alert feedback loop"
 ---
 
@@ -50,7 +52,7 @@ Positive feedback is captured too: it tells the seat what to keep.
 
 - **`calibration-note`** — default while calibrating, and for any correction the next run should apply. `/role-context` loads open notes before every run.
 - **`playbook-change`** — the fix is a change to this companion's own skills or playbooks. **Do not edit them.** Raise it through the operator queue (a decision request: what would change, why, the feedback id) the way your platform prompt describes; it is applied only after approval. Until the platform re-triggers on the answer, the item says "applied at the next wake-up".
-- **`report-problem`** — a person flagged an output as wrong and it is not a simple correction (wrong data, a missed commitment, harm): raise **one** operator-queue alert (not a decision request) with a one-line summary and the feedback id, the way your platform prompt describes the queue. A negative rating given in the Workspace already raises the platform's own report-a-problem item — then do not raise a second one; capture the entry and reference it. One alert per output; never repeat it for the same `about`.
+- **`report-problem`** — a person flagged an output as wrong and it is not a simple correction (wrong data, a missed commitment, harm): raise **one** operator-queue alert (not a decision request) with a one-line summary and the feedback id, the way your platform prompt describes the queue. The companion cannot see the platform's own report-a-problem items (a Workspace rating or report raises one the agent is never shown), so it never tries to dedupe against them. Instead: raise the alert only for a problem reported **to the companion in the conversation**. If the person says they already reported it in the Workspace, capture the entry with `notes: "reported via Workspace"` and raise nothing. Otherwise dedupe against this seat's own entries: an existing `action: report-problem` entry with the same `about` → capture, reference it, raise nothing. One alert per output.
 - **`none`** — positive or informational.
 
 A correction that is really about **direction** (pricing, positioning, roadmap) is not a seat correction: record `action: none`, and tell the person it belongs in a canon proposal to the direction's owner.
@@ -88,5 +90,5 @@ Publish with `/canon-publish` (own folder, lint-gated). Reply in one or two line
 | `SELF` empty (no `x-canon.folder`) | Stop — `/role-context` refuses it; never write under `agents//…`, which is shared |
 | `/canon-publish` not available (not among this agent's skills) | Leave the entry written in the local clone, uncommitted. Do **not** commit or push to the canon yourself. Reply `written locally, not published — /canon-publish unavailable` so the operator can install it |
 | The person is vague | One clarifying question, then capture what you have — never drop it |
-| Same output already reported (by you or by the platform's rating flow) | Capture the entry; do not raise a second alert |
+| Same output already reported (an earlier `report-problem` entry for the same `about`, or the person says they reported it in the Workspace) | Capture the entry; do not raise a second alert |
 | `/canon-publish` refuses (lint) | Fix the entry's fields and re-run; never leave feedback only in chat |

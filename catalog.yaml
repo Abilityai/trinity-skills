@@ -37,6 +37,9 @@ sets:
       - name: "Weekly observation"
         cron: "0 16 * * 5"
         message: /report-observation
+      - name: "Lesson adoption (one per day, drains the brain's weekly batch)"
+        cron: "0 9 * * 1-5"
+        message: /adopt-lesson --next
   learning-brain:
     description: "The brain side of the learning loop — observation intake and weekly synthesis per role family."
     skills: [synthesise-lessons]

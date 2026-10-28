@@ -41,6 +41,8 @@ DOLLAR_DIGIT_RE = re.compile(r"(?<![\\$])\$\d+")
 # `canon:` entries are domain ids from the canon's domains.yaml map —
 # lowercase kebab-case, the same shape as a skill name.
 CANON_DOMAIN_RE = NAME_RE
+# Categories whose skills must declare `canon:` (they exist to read a fleet canon).
+CANON_REQUIRED_CATEGORIES = {"role-companions"}
 # `sets:` in catalog.yaml (ent#510) — the SAME rules the platform parser applies
 # (Abilityai/trinity services/skill_sets.py, ent#530 / PR #3005), held strictly
 # here: any problem code the platform would attach is a FAIL, because a set the
@@ -302,6 +304,10 @@ def validate_skill(d):
     # Optional `canon:` — the canon domains the skill reads (CONTRIBUTING.md,
     # "Frontmatter contract"). Shape only: whether a domain exists is the
     # consuming fleet's canon, which this repo cannot see.
+    # Role companions read the seat's canon by construction (ent#510 DoD: every
+    # role-pack skill declares `canon:`), so the key is REQUIRED in that category.
+    if "canon" not in fm and fm.get("category") in CANON_REQUIRED_CATEGORIES:
+        fail("canon", f"category {fm.get('category')!r} requires canon: — declare the canon domains the skill reads, e.g. canon: [org-context]")
     if "canon" in fm:
         canon = fm.get("canon")
         if not isinstance(canon, list) or not canon:
