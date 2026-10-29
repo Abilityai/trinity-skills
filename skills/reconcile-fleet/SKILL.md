@@ -7,14 +7,15 @@ argument-hint: "[<fleet>] [--check] [--view <path-or-url>]"
 when_to_use: On the Architect's `architect.reconcile` cron (headless, never asks mid-run), or by hand — "reconcile the fleet", "what drifted from the view", "is the live fleet what the view says", after a person merged a view change, after a deploy. `--check` observes, diffs and digests without applying, asking or proposing. Not a general skill installer, not a fleet designer (`/compile-view` compiles; a person merges the view).
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Skill, mcp__trinity__list_agents, mcp__trinity__get_agent_info, mcp__trinity__get_agent_skills, mcp__trinity__list_agent_schedules, mcp__trinity__get_agent_assignments, mcp__trinity__list_skill_gates, mcp__trinity__list_systems, mcp__trinity__get_system_manifest, mcp__trinity__assign_skill_to_agent, mcp__trinity__set_skill_gate, mcp__trinity__clear_skill_gate, mcp__trinity__toggle_agent_schedule, mcp__trinity__deploy_system, mcp__trinity__ask_operator, mcp__trinity__get_my_ask, mcp__trinity__list_operator_queue, mcp__trinity__report, mcp__trinity__list_reports, mcp__trinity__record_metrics
 requires:
-  env: [GITHUB_TOKEN]
+  env: [GITHUB_TOKEN, INSTANCE_API_KEY, ARCHITECT_INSTANCE_KEY]   # the two keys matter only in remote placement (a Regent / a control-plane Architect); unset = local placement, not a fault
   binaries: [git, python3]
 metadata:
-  mirror: "tandem-blueprint@41b9f4a skills/reconcile-fleet"
-  version: "1.0"
+  mirror: "tandem-blueprint@fcf4d60 skills/reconcile-fleet"
+  version: "1.1"
   created: 2026-10-28
   author: architect
   changelog:
+    - "1.1: remote placement — when the agent holds a governed instance's URL and admin key (Regent: INSTANCE_URL / INSTANCE_MCP_URL / INSTANCE_API_KEY; or ARCHITECT_INSTANCE_URL / ARCHITECT_INSTANCE_MCP_URL / ARCHITECT_INSTANCE_KEY) every Step 2 observation is made against THAT instance over its REST/MCP door with curl, never through this agent's own trinity MCP handle (which would observe the control plane); --check also lists live-only agents (on the instance, not in the view) as a `live-only` section of the digest before any apply is ever considered; fleet slug may come from ARCHITECT_FLEET or INSTANCE_NAME; 1.0 behaviour unchanged for local placement"
     - "1.0: Initial version — observe → diff (tools/diff_view.py) → apply / ask / escalate / propose per PRD §2 → digest with gap ages, architect.reconcile report, three declared metrics; idempotent by stable request_ids; edges and grants unobserved (trinity-enterprise#991); abilityai/trinity-enterprise#992"
 ---
 
@@ -67,7 +68,8 @@ Four verbs, one boundary (PRD §2):
 
 ### Step 0: Arguments and side clones
 
-- `<fleet>`: the first bare argument. Default: the only `<fleet>/` directory in `fleet-targets/`, else the `fleet:` of the only file under `views/`; if neither resolves to exactly one, stop and say what is missing.
+- `<fleet>`: the first bare argument. Default: `${ARCHITECT_FLEET}`, else `${INSTANCE_NAME}` (a Regent), else the only `<fleet>/` directory in `fleet-targets/`, else the `fleet:` of the only file under `views/`; if none resolves to exactly one, stop and say what is missing.
+- **Placement** (decided once, printed in the digest header): **remote** when `INSTANCE_URL` + `INSTANCE_API_KEY` (Regent) or `ARCHITECT_INSTANCE_URL` + `ARCHITECT_INSTANCE_KEY` are set — this agent runs on a control plane and observes *another* instance; **local** otherwise — it observes the instance it runs on through its own `trinity` MCP tools. In remote placement the MCP tools in `allowed-tools` are **never** used for observation (they would read the control plane, not the fleet); every call in Step 2 goes over the governed instance's own door instead, see **Remote door** below.
 - `--check`: observe + diff + digest; Step 4 is skipped entirely.
 - `--view <path-or-url>`: use this file (or a raw URL fetched once) instead of the clone. Record its source and sha256 as the view sha.
 
@@ -96,6 +98,22 @@ A view that fails validation is **not a source**: stop, report `view invalid at 
 Precedence when both exist: `--view` > `fleet-targets/` clone > `views/<fleet>/` (the Trinity-held copy). If the clone and the held copy differ, note it in the digest (`held copy behind <sha>`); the clone wins.
 
 ### Step 2: Observe the live fleet — one call per section, every outcome recorded
+
+**Remote door (remote placement only).** `URL=${INSTANCE_URL:-$ARCHITECT_INSTANCE_URL}`, `MCP=${INSTANCE_MCP_URL:-${ARCHITECT_INSTANCE_MCP_URL:-$URL/mcp}}`, `BEARER=${INSTANCE_API_KEY:-$ARCHITECT_INSTANCE_KEY}`. The same bearer opens REST and MCP. Each MCP tool in the table becomes one JSON-RPC `tools/call` (initialize → `notifications/initialized` → the call, one session per run); REST reads are plain `GET`. Confirm identity first — `GET $URL/api/users/me/` must answer with a user whose role is `admin`; anything else is printed and the run stops, because a non-admin census cannot be trusted as a fleet count.
+
+```bash
+H=(-H "Authorization: Bearer $BEARER" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream")
+SID=$(curl -sS -m 20 -X POST "$MCP" "${H[@]}" -D - -o /dev/null -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"reconcile-fleet","version":"1.1"}}}' | awk 'tolower($(1))=="mcp-session-id:"{print $(2)}' | tr -d '\r')
+curl -sS -m 20 -X POST "$MCP" "${H[@]}" -H "Mcp-Session-Id: $SID" -o /dev/null -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+mcp() { curl -sS -m 120 -X POST "$MCP" "${H[@]}" -H "Mcp-Session-Id: $SID" -d "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"${1}\",\"arguments\":${2:-{\}}}}" | sed -n 's/^data: //p'; }
+rest() { curl -sS -m 30 "${H[@]}" "${URL}${1}"; }
+# e.g.  mcp list_agents '{}'   ·   rest /api/agents/<a>/schedules   ·   rest /api/agents/<a>/permissions
+```
+
+In remote placement the admin key sees the whole instance, so three rows that are `unobserved` locally become observable: **schedules of every agent** (`rest /api/agents/<a>/schedules`), **edges** (`rest /api/agents/<a>/permissions` — `permitted: true` per target), and **assignments / shares** (`rest /api/agents/<a>/shares`, `rest /api/settings/email-whitelist`). Record them in the same sections with `source: rest`. Grants (self-change permissions) stay `unobserved · platform-issue` in both placements.
+
+**Live-only (both placements, always).** After `list_agents`, every agent on the instance that the view does not name goes into `observed.live_only[]` with its status, template and tags. The digest prints them first, under `live-only (not in the view)`, before any gap row. A live-only agent is never touched by Step 4 and never inferred to be unwanted: it is a question for the view's owner (keep → add a row; retire → a person's act). Platform agents (`trinity-system`) are listed once with `platform: true` and excluded from the count.
+
 
 Assemble `state/reconcile/<fleet>.observed.json` in the shape documented at the top of `tandem-blueprint/tools/diff_view.py`. Every section is filled from exactly the calls below; a failed call puts its error text in that section's `error` and moves on. Nothing is carried over from a previous run except the `grants.known` outcomes (Step 4 writes them; keep them dated).
 
