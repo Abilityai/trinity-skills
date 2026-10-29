@@ -10,11 +10,11 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Skill, mcp__trinity__get_agent_ass
 requires:
   binaries: [git, python3]
 metadata:
-  mirror: "tandem-blueprint@41b9f4a skills/apply-view"
-  version: "1.0"
+  version: "1.1"
   created: 2026-10-28
   author: architect
   changelog:
+    - "1.1: authored here; the validator lives in Abilityai/fleet-targets tools/ (tandem-blueprint retired 2026-10-29)"
     - "1.0: Initial version — validate → diff → one approval ask (request_id keyed by the proposal's sha256) → fire and park → on approval copy into views/<fleet>/target-view.yaml, commit locally, run /reconcile-fleet once; refuses an invalid proposal and a fleet whose view lives in fleet-targets; abilityai/trinity-enterprise#992"
 ---
 
@@ -43,10 +43,10 @@ It is designed to be a **gated skill**: `approval: recommended` in the frontmatt
 ### Step 1: Locate and validate
 
 - `<proposal-path>`: required. Default location the Architect writes to: `canon/<x-canon.folder>/proposals/target-view.next.yaml`.
-- Self-heal the tools clone: `[ -d tandem-blueprint/.git ] || git clone --quiet https://github.com/Abilityai/tandem-blueprint tandem-blueprint; git -C tandem-blueprint pull --quiet --ff-only`.
+- Self-heal the tools clone: `[ -d fleet-targets/.git ] || git clone --quiet https://github.com/Abilityai/fleet-targets fleet-targets; git -C tandem-blueprint pull --quiet --ff-only`.
 
 ```bash
-python3 tandem-blueprint/tools/validate.py --view <proposal-path>
+python3 fleet-targets/tools/validate.py --view <proposal-path>
 ```
 
 Any `FAIL` → print them, say `proposal refused — fix the file and re-run`, stop. Read `fleet:` from the proposal. If `fleet-targets/<fleet>/target-view.yaml` exists → stop: `this fleet's view lives in Abilityai/fleet-targets — open a PR there; apply-view writes only the Trinity-held copy`.
@@ -93,7 +93,7 @@ Record the receipt (`id`, `to_role`, `resolved`) and **end the turn**. `resolved
 ```bash
 mkdir -p views/<fleet>
 cp <proposal-path> views/<fleet>/target-view.yaml
-python3 tandem-blueprint/tools/validate.py --view views/<fleet>/target-view.yaml
+python3 fleet-targets/tools/validate.py --view views/<fleet>/target-view.yaml
 git add views/<fleet>/target-view.yaml
 git commit -m "view(<fleet>): apply proposal <sha16> — approved via <request_id or gate>"
 ```

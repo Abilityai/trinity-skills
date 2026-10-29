@@ -9,11 +9,11 @@ allowed-tools: Read, Write, Bash, Glob, Grep, mcp__trinity__deploy_system
 requires:
   binaries: [git, python3]
 metadata:
-  mirror: "tandem-blueprint@41b9f4a skills/compile-view"
-  version: "1.0"
+  version: "1.1"
   created: 2026-10-28
   author: architect
   changelog:
+    - "1.1: authored here; the compiler lives in Abilityai/fleet-targets tools/ beside the views (tandem-blueprint retired 2026-10-29) — one clone"
     - "1.0: Initial version — tools/compile_view.py: agents[] → agents{short: {template (with @ref inside), kind}}, edges[] → permissions.explicit (every agent a source key; preset none when no edges), everything else → the apply sidecar; name_prefix_mismatch / edges_outside_manifest / architect_not_in_agents warnings; optional deploy_system dry run; abilityai/trinity-enterprise#992"
 ---
 
@@ -46,14 +46,14 @@ Not emitted, on purpose: `prompt`, `default_tags`, `system_view`, `folders`, `sc
 
 - `<fleet>`: first bare argument; default as in `/reconcile-fleet` (the only `<fleet>/` in `fleet-targets/`, else the only `views/<fleet>/`).
 - `--view <path-or-url>`: compile this file instead (fetched once when a URL).
-- Self-heal the tools clone: `[ -d tandem-blueprint/.git ] || git clone --quiet https://github.com/Abilityai/tandem-blueprint tandem-blueprint; git -C tandem-blueprint pull --quiet --ff-only`.
+- Self-heal the tools clone: `[ -d fleet-targets/.git ] || git clone --quiet https://github.com/Abilityai/fleet-targets fleet-targets; git -C tandem-blueprint pull --quiet --ff-only`.
 - View sha: `git -C fleet-targets rev-parse --short HEAD` when from the clone, else the file's sha256 (first 12).
 
 ### Step 2: Compile
 
 ```bash
 mkdir -p build
-python3 tandem-blueprint/tools/compile_view.py <view> --out-dir build --view-sha <sha> [--system-name <name>]
+python3 fleet-targets/tools/compile_view.py <view> --out-dir build --view-sha <sha> [--system-name <name>]
 ```
 
 The compiler validates the view first (`tools/validate.py --view`) and refuses one that fails — a view that does not validate is not a source. On success it prints the two paths and every warning:
@@ -102,7 +102,7 @@ No Trinity report — this is a build step; `/reconcile-fleet` reports.
 | Situation | Action |
 |---|---|
 | View missing / fails validation | Stop; print the validator's lines; nothing written. |
-| `tandem-blueprint` clone refused | Stop; the compiler lives there — say so and name the repo. |
+| `fleet-targets` clone refused | Stop; the views and the compiler live there — say so and name the repo. |
 | Trinity MCP unavailable | Compile completes; dry run `skipped (no MCP)`. |
 | `deploy_system` dry run → `403 agent_management_not_permitted` | Report; compile complete; the grant is a person's to give. |
 | Dry run `invalid` | Print `failed[]` verbatim; the artifact stays for inspection; fix is in the view (a person) or the platform. |

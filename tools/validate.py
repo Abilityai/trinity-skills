@@ -35,7 +35,7 @@ CATEGORIES = {
 # Library naming is deliberately stricter than the platform's SKILL_NAME_RE.
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
-MIRROR_RE = re.compile(r"^(abilities|tandem-blueprint)@[0-9a-f]{7,40} \S+$")  # authoring sources: the abilities marketplace, the Tandem Blueprint (Architect skills)
+MIRROR_RE = re.compile(r"^(abilities)@[0-9a-f]{7,40} \S+$")  # authoring sources: the abilities marketplace, the Tandem Blueprint (Architect skills)
 VERSION_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")
 DOLLAR_DIGIT_RE = re.compile(r"(?<![\\$])\$\d+")
 # `canon:` entries are domain ids from the canon's domains.yaml map —
@@ -288,7 +288,7 @@ def validate_skill(d):
         fail("versioning", "metadata.changelog missing or empty (newest-first list)")
     mirror = meta.get("mirror")
     if mirror is not None and not (isinstance(mirror, str) and MIRROR_RE.match(mirror)):
-        fail("mirror", "metadata.mirror must be '<source>@<sha> <path-in-source>' with source abilities or tandem-blueprint")
+        fail("mirror", "metadata.mirror must be '<source>@<sha> <path-in-source>' with source abilities")
 
     # Optional `canon:` — the canon domains the skill reads (CONTRIBUTING.md,
     # "Frontmatter contract"). Shape only: whether a domain exists is the

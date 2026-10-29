@@ -10,11 +10,11 @@ requires:
   env: [GITHUB_TOKEN, INSTANCE_API_KEY, ARCHITECT_INSTANCE_KEY]   # the two keys matter only in remote placement (a Regent / a control-plane Architect); unset = local placement, not a fault
   binaries: [git, python3]
 metadata:
-  mirror: "tandem-blueprint@fcf4d60 skills/reconcile-fleet"
-  version: "1.1"
+  version: "1.2"
   created: 2026-10-28
   author: architect
   changelog:
+    - "1.2: authored here (the Blueprint repo is retired; schema + tools now live in Abilityai/fleet-targets beside the views — one clone, not two); a missing `kind` field on the platform (`list_agents` on 1.0.0-rc4 returns none) reads `unobserved`, never kind drift; metrics are recorded only when this agent's template.yaml declares them; the side clones must be gitignored by the agent (`fleet-targets/`, `state/`) — say so when they are not; first live run: regent-factory-04 2026-10-29"
     - "1.1: remote placement — when the agent holds a governed instance's URL and admin key (Regent: INSTANCE_URL / INSTANCE_MCP_URL / INSTANCE_API_KEY; or ARCHITECT_INSTANCE_URL / ARCHITECT_INSTANCE_MCP_URL / ARCHITECT_INSTANCE_KEY) every Step 2 observation is made against THAT instance over its REST/MCP door with curl, never through this agent's own trinity MCP handle (which would observe the control plane); --check also lists live-only agents (on the instance, not in the view) as a `live-only` section of the digest before any apply is ever considered; fleet slug may come from ARCHITECT_FLEET or INSTANCE_NAME; 1.0 behaviour unchanged for local placement"
     - "1.0: Initial version — observe → diff (tools/diff_view.py) → apply / ask / escalate / propose per PRD §2 → digest with gap ages, architect.reconcile report, three declared metrics; idempotent by stable request_ids; edges and grants unobserved (trinity-enterprise#991); abilityai/trinity-enterprise#992"
 ---
@@ -50,7 +50,7 @@ Four verbs, one boundary (PRD §2):
 - **Idempotent.** Re-running on an unchanged fleet applies nothing and asks nothing twice. Every ask carries a stable `request_id` (`reconcile:<fleet>:<section>:<key>`); `ask_operator` replays the first receipt for a repeated id (`status: replayed`), and the run reads `get_my_ask(request_id)` before raising. Dedupe only on the agent-scoped read — `list_operator_queue(agent_name=<self>, status=pending)` — never the broad listing, which applies `limit` fleet-wide before the scope filter and under-returns.
 - **An ask receipt's `resolved: true` means a Workspace will show it, not that a person saw it.** `to: operator` is Operating-Room-only; a role several people fill reaches all, first answer wins. Before escalating "parked and unanswered", confirm the ask is reachable (`to_role` on the receipt), not merely filed.
 - **`agent_busy` vs `rate_limited`** on any delegation this skill makes: busy = nothing ran, re-send later; rate-limited = it ran, never re-send. This skill delegates nothing by default; the rule is here for the `/compile-view` call it makes.
-- **Cold start.** The view and the tools come from two private repos. `GITHUB_TOKEN` not set → say so by name and stop: `GITHUB_TOKEN not set — add it to this agent's credentials (Settings → Credentials)`. Nothing is observed without the view.
+- **Cold start.** The view and the tools come from one private repo (`Abilityai/fleet-targets`). `GITHUB_TOKEN` not set → say so by name and stop: `GITHUB_TOKEN not set — add it to this agent's credentials (Settings → Credentials)`. Nothing is observed without the view.
 
 ## State dependencies
 
@@ -58,7 +58,7 @@ Four verbs, one boundary (PRD §2):
 |---|---|---|---|
 | Target view (authoritative) | `fleet-targets/<fleet>/target-view.yaml` — side clone of `github:Abilityai/fleet-targets` (gitignored, self-healed) | ✓ | never |
 | Target view (Trinity-held, installs without git — ruling 7) | `views/<fleet>/target-view.yaml` in this agent's own repo, written only by `/apply-view` | ✓ | never (here) |
-| Schema, validator, diff, compiler, hygiene checks | `tandem-blueprint/` — side clone of `github:Abilityai/tandem-blueprint` (gitignored, self-healed; `tools/validate.py`, `tools/diff_view.py`, `tools/compile_view.py`, `tools/hygiene_checks.py`) | ✓ | never |
+| Schema, validator, diff, compiler, hygiene checks | `fleet-targets/tools/` — the same clone as the views (`tools/validate.py`, `tools/diff_view.py`, `tools/compile_view.py`, `tools/hygiene_checks.py`) | ✓ | never |
 | Live fleet | Trinity MCP (tools in `allowed-tools`) | ✓ | apply rows only |
 | Observation, gap ledger, ask/grant memory | `state/reconcile/<fleet>.observed.json`, `state/reconcile/<fleet>.json`, `state/reconcile/<fleet>.ledger.jsonl` (gitignored) | ✓ | ✓ |
 | Proposals | `canon/<x-canon.folder>/proposals/target-view.next.yaml` (own canon folder; `template.yaml x-canon: folder`) | ✓ | ✓ (propose) — published by `/canon-publish`, never pushed here |
@@ -73,11 +73,9 @@ Four verbs, one boundary (PRD §2):
 - `--check`: observe + diff + digest; Step 4 is skipped entirely.
 - `--view <path-or-url>`: use this file (or a raw URL fetched once) instead of the clone. Record its source and sha256 as the view sha.
 
-Self-heal the two side clones (plain https — the agent's git credential helper supplies the token; `test -n "${GITHUB_TOKEN}" || echo "GITHUB_TOKEN not set — add it to this agent's credentials"` first, and stop when unset):
+Self-heal the side clone (the views and the tools are one repo since 2026-10-29) (plain https — the agent's git credential helper supplies the token; `test -n "${GITHUB_TOKEN}" || echo "GITHUB_TOKEN not set — add it to this agent's credentials"` first, and stop when unset):
 
 ```bash
-[ -d tandem-blueprint/.git ] || git clone --quiet https://github.com/Abilityai/tandem-blueprint tandem-blueprint
-git -C tandem-blueprint pull --quiet --ff-only
 [ -d fleet-targets/.git ] || git clone --quiet https://github.com/Abilityai/fleet-targets fleet-targets
 git -C fleet-targets pull --quiet --ff-only
 mkdir -p state/reconcile
@@ -90,7 +88,7 @@ A clone that is refused is a stop: nothing below runs without the view, and the 
 ```bash
 VIEW=fleet-targets/<fleet>/target-view.yaml           # or views/<fleet>/target-view.yaml, or --view
 VIEW_SHA=$(git -C fleet-targets rev-parse --short HEAD)   # sha256 of the file when not from the clone
-python3 tandem-blueprint/tools/validate.py --view "$VIEW"
+python3 fleet-targets/tools/validate.py --view "$VIEW"
 ```
 
 A view that fails validation is **not a source**: stop, report `view invalid at <sha>: <errors>`, publish the digest with that single line, record nothing else. The Architect never upgrades or repairs a view — a person merges the rewritten file.
@@ -115,11 +113,11 @@ In remote placement the admin key sees the whole instance, so three rows that ar
 **Live-only (both placements, always).** After `list_agents`, every agent on the instance that the view does not name goes into `observed.live_only[]` with its status, template and tags. The digest prints them first, under `live-only (not in the view)`, before any gap row. A live-only agent is never touched by Step 4 and never inferred to be unwanted: it is a question for the view's owner (keep → add a row; retire → a person's act). Platform agents (`trinity-system`) are listed once with `platform: true` and excluded from the count.
 
 
-Assemble `state/reconcile/<fleet>.observed.json` in the shape documented at the top of `tandem-blueprint/tools/diff_view.py`. Every section is filled from exactly the calls below; a failed call puts its error text in that section's `error` and moves on. Nothing is carried over from a previous run except the `grants.known` outcomes (Step 4 writes them; keep them dated).
+Assemble `state/reconcile/<fleet>.observed.json` in the shape documented at the top of `fleet-targets/tools/diff_view.py`. Every section is filled from exactly the calls below; a failed call puts its error text in that section's `error` and moves on. Nothing is carried over from a previous run except the `grants.known` outcomes (Step 4 writes them; keep them dated).
 
 | section | call | keys kept |
 |---|---|---|
-| `agents` | `list_agents` (the key's reach), then `get_agent_info(name)` for every view agent the list lacks | `kind` (`list_agents[].kind`; null = platform default), `status`, `template`/`github_repo`; a denied or missing `get_agent_info` → that agent's `error: "not found or not accessible — reach (ent#629) or absent"` |
+| `agents` | `list_agents` (the key's reach), then `get_agent_info(name)` for every view agent the list lacks | `kind` (`list_agents[].kind`; **absent on platforms before the field shipped → the row is `unobserved`, never drift**), `status`, `template`/`github_repo`; a denied or missing `get_agent_info` → that agent's `error: "not found or not accessible — reach (ent#629) or absent"` |
 | `skills` | `get_agent_skills(agent_name)` per view agent | `skill_name` list, `sets`, `delivery_status` (informational: a gated skill the executor does not hold "gates nothing until it does") |
 | `gates` | `list_skill_gates(agent_name)` per executor in `approval_map` + the Architect | `gates[].skill_name / approver / origin / approver_reachable`; `approvers[]` kept aside for Step 4's role resolution |
 | `schedules` | `list_agent_schedules(agent_name)` for the Architect (self) and any agent the reach allows | `id`, `name`, `cron`, `message`, `enabled` |
@@ -134,7 +132,7 @@ Sanity check before trusting a fleet-wide pattern: an empty `get_agent_skills` f
 Hygiene checks ride along, on this agent's own repository only (the tick does not clone the fleet's repos):
 
 ```bash
-python3 tandem-blueprint/tools/hygiene_checks.py . --json
+python3 fleet-targets/tools/hygiene_checks.py . --json
 ```
 
 Failing check ids go into the digest beside the gaps — ids only, never a total.
@@ -142,7 +140,7 @@ Failing check ids go into the digest beside the gaps — ids only, never a total
 ### Step 3: Diff
 
 ```bash
-python3 tandem-blueprint/tools/diff_view.py "$VIEW" state/reconcile/<fleet>.observed.json --json > state/reconcile/<fleet>.diff.json
+python3 fleet-targets/tools/diff_view.py "$VIEW" state/reconcile/<fleet>.observed.json --json > state/reconcile/<fleet>.diff.json
 ```
 
 Rows are `{section, key, target, observed, status, action, note}`; `status ∈ in sync | drift | unobserved | schema-gap`, `action ∈ apply | ask | escalate | propose | none | platform-issue`. Then update the gap ledger `state/reconcile/<fleet>.json`:
@@ -243,4 +241,4 @@ metrics:
 
 ## Self-improvement
 
-After a run, consider tactical improvements only — a new drift shape, a tool quirk, a clearer digest line. Never widen the verbs (no new apply class without a PRD §2 change), never infer a status. Edit this SKILL.md in its authoring source (`tandem-blueprint/skills/reconcile-fleet/`), bump `metadata.version`, prepend a changelog entry; the library mirror follows.
+After a run, consider tactical improvements only — a new drift shape, a tool quirk, a clearer digest line. Never widen the verbs (no new apply class without a PRD §2 change), never infer a status. Edit this SKILL.md here (it is authored in this library since 1.2), bump `metadata.version`, prepend a changelog entry.
