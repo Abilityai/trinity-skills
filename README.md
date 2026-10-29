@@ -19,7 +19,10 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `adjust-playbook` | 1.14.1 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
 | `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
 | `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
+| `apply-view` | 1.0 | mirrored · abilities | The Trinity-native merge of a target-view proposal for installs without a git review flow (ruling 7) — validate the proposal against the tar |
+| `compile-view` | 1.0 | mirrored · abilities | Compile a fleet's target view into a Trinity SystemManifest build artifact (build/<fleet>.system.yaml — Trinity's native format only, no inv |
 | `create-playbook` | 2.22 | mirrored · abilities | Create a new skill or playbook |
+| `reconcile-fleet` | 1.0 | mirrored · abilities | The Architect's scheduled tick — fetch the fleet's target view at a sha, observe the live fleet over Trinity MCP (agents, kinds, library ski |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data

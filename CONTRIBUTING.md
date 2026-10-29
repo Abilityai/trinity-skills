@@ -70,7 +70,7 @@ Rules:
 - `description` ≥ 40 chars — it is the browse surface and the model's selection signal.
 - `requires:` is **exhaustive and honest**. CI cross-checks every env name referenced in the skill's body and scripts against `requires.env` — both directions: an undeclared reference fails, and a declared-but-unused key fails. The platform probes these keys at injection and warns the agent when one is missing, so an undeclared key is a silent runtime failure.
 - Optional lifecycle keys: `deprecated: true` and `superseded-by: <name>` — how a skill retires. Deprecated skills are removed at the next major tag.
-- Mirrored skills carry `metadata.mirror: "abilities@<sha> <path>"` (see below).
+- Mirrored skills carry `metadata.mirror: "<source>@<sha> <path>"` where the source is `abilities` (the plugin marketplace) or `tandem-blueprint` (the Architect skill set) (see below).
 - **`canon:` — the shared truth a skill reads.** A skill that reads a fleet's canon (the shared canonical-data repo: roles, objectives, the domain map and the facts each agent publishes) declares exactly which domains it needs, by their ids in the canon's `domains.yaml`:
 
   ```yaml
@@ -113,9 +113,9 @@ The runtime fills `$0`, `$1`, `$2` … anywhere in a `SKILL.md` body — code bl
 
 ## Mirrored skills
 
-Some skills are **authored in the [abilities](https://github.com/Abilityai/abilities) plugin marketplace** and mirrored here (they carry `metadata.mirror`). For those:
+Some skills are **authored elsewhere and mirrored here** (they carry `metadata.mirror`): in the [abilities](https://github.com/Abilityai/abilities) plugin marketplace, or — for the Architect skill set `reconcile-fleet` · `compile-view` · `apply-view` — in `Abilityai/tandem-blueprint` (`skills/`, private; the Blueprint is where the target-view schema these skills implement is defined). For those:
 
-- **Do not PR changes to the mirrored copy here** — it is generated. PR the change to `abilities` instead; the mirror is refreshed from there (currently via the trinity-pm agent's promote/refresh pipeline), and a hand-edit would be overwritten by the next refresh.
+- **Do not PR changes to the mirrored copy here** — it is generated. PR the change to the authoring source (`abilities` or `tandem-blueprint`) instead; the mirror is refreshed from there (currently via the trinity-pm agent's promote/refresh pipeline), and a hand-edit would be overwritten by the next refresh.
 - Skills without `metadata.mirror` are authored here — PR them directly.
 
 ## Review bar
