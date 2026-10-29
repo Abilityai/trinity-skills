@@ -23,6 +23,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `compile-view` | 1.1 | library | Compile a fleet's target view into a Trinity SystemManifest build artifact (build/<fleet>.system.yaml — Trinity's native format only, no inv |
 | `create-playbook` | 2.22 | mirrored · abilities | Create a new skill or playbook |
 | `reconcile-fleet` | 1.2 | library | The Architect's scheduled tick — fetch the fleet's target view at a sha, observe the live fleet over Trinity MCP (agents, kinds, library ski |
+| `subscribe` | 1.2 | library | Connect a resident Architect (agent-builder on a customer instance, a Regent on the control plane) to the hosted Architect — print the exact |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
 
 ### documents-and-data

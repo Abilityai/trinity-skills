@@ -22,7 +22,7 @@ providers:    # canonical env key per credential provider (rules in CONTRIBUTING
 
 sets:         # named slices of THIS source, assignable to an agent as one unit (trinity-enterprise#530)
   architect:                  # the resident Architect's skill set — holds a fleet to its target view (schema + views: Abilityai/fleet-targets)
-    skills: [reconcile-fleet, compile-view, apply-view]
+    skills: [reconcile-fleet, compile-view, apply-view, subscribe]
     requires: {env: [GITHUB_TOKEN]}
     schedules:                # SUGGESTED only — the platform shows them, never creates them
       - {name: Architect tick, cron: "0 6 * * *", message: /reconcile-fleet}
