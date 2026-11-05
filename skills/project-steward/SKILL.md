@@ -10,7 +10,7 @@ category: project-management
 requires:
   binaries: [git, gh]
 metadata:
-  mirror: "abilities@06679ae plugins/agent-dev/skills/project-steward"
+  mirror: "abilities@46eed9b plugins/agent-dev/skills/project-steward"
   version: "1.11"
   created: 2026-07-30
   author: add-project-management

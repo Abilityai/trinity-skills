@@ -8,7 +8,7 @@ category: project-management
 requires:
   binaries: [git, gh]
 metadata:
-  mirror: "abilities@06679ae plugins/agent-dev/skills/project-init"
+  mirror: "abilities@46eed9b plugins/agent-dev/skills/project-init"
   version: "1.6.0"
   created: 2026-07-30
   author: add-project-management
