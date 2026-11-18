@@ -80,6 +80,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
+| `declare-schedules` | 1.1 | library | Reconcile this agent's repo template.yaml `schedules:` block against its live Trinity schedules so the repo declares exactly what runs - eve |
 | `self-diagnostic` | 1.0 | library | Run self-diagnostics on the agent to verify skills, commands, agents, and dependencies are working |
 | `skill-builder` | 1.0 | library | Expert guide for creating Claude Code skills |
 | `update-dashboard` | 1.1 | library | Refresh an agent's business metrics in one pass — compute every metric declared in template.yaml metrics:, refresh dashboard.yaml, and recor |
