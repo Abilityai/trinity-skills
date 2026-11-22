@@ -44,12 +44,12 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `close` | 1.0 | mirrored · abilities | Close the current issue without a git commit — adds summary comment and marks done |
 | `commit` | 1.1 | mirrored · abilities | Commit changed skill files and close the in-progress issue — writes a traceability commit message referencing the issue number |
 | `groom` | 1.0 | mirrored · abilities | Groom the backlog — tag untagged issues with skill:* labels, verify priorities, surface stale in-progress work |
-| `project-init` | 1.6.0 | mirrored · abilities | Create or adopt a long-term managed project per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on  |
-| `project-intake` | 1.6.1 | mirrored · abilities | Headless intake primitive — routes actionable items from any source (meetings, email, Slack, issue trackers) into the project's registry — G |
-| `project-reconcile` | 1.4.1 | mirrored · abilities | Sync projection adapters against the registry per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
-| `project-status` | 1.5 | mirrored · abilities | Daily operator status for ONE managed project per the project standard — what moved since yesterday, what is done, what waits on the operato |
-| `project-steward` | 1.11 | mirrored · abilities | Autonomous sweep of all managed projects per the project standard (PROJECT_STANDARD.md at the repo root, or fleet/project-standard.md on an  |
-| `project-task` | 1.7.1 | mirrored · abilities | Create a task in the uniform format per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator; §0 confi |
+| `project-init` | 2.0.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37) — create a project on Trinity Projects with its kickoff kit (intent, charter wit |
+| `project-intake` | 2.0.0 | mirrored · abilities | Headless intake primitive |
+| `project-reconcile` | 1.5.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28) there is no projection — the platform is a project's only home — so this skill says  |
+| `project-status` | 2.0 | mirrored · abilities | Status for ONE managed project |
+| `project-steward` | 2.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37), stewards a project in the platform only |
+| `project-task` | 2.0.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37), creates a task in the platform project only — create_project_task with the §33  |
 | `propose-improvements` | 1.0 | library | The standard procedure by which an agent researches its market and its own record, then proposes improvements for a human or superior agent  |
 | `roadmap` | 1.0 | mirrored · abilities | Strategic view of the agent backlog — open issues grouped by skill, showing which areas have the most work |
 | `sprint` | 1.0 | mirrored · abilities | Human-supervised development cycle — orchestrates roadmap → claim → autoplan → implement → commit for one skill issue |
