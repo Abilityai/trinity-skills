@@ -21,6 +21,8 @@ providers:    # canonical env key per credential provider (rules in CONTRIBUTING
   nevermined: NVM_API_KEY
 
 sets:         # named slices of THIS source, assignable to an agent as one unit (trinity-enterprise#530)
+  project-management:         # the project set — what a project's steward runs (project standard 3.1): plan, tasks, sweep, status
+    skills: [project-init, project-plan, project-task, project-intake, project-steward, project-status, project-reconcile]
   architect:                  # the resident Architect's skill set — holds a fleet to its target view (schema + views: Abilityai/fleet-targets)
     skills: [reconcile-fleet, compile-view, apply-view, subscribe]
     requires: {env: [GITHUB_TOKEN]}

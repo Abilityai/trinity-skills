@@ -9,7 +9,7 @@ requires:
   env: [GOOGLE_TASKS_TOKEN, GOOGLE_TASKS_LIST_ID]
   binaries: [git, gh]
 metadata:
-  mirror: "abilities@PENDING plugins/agent-dev/skills/project-reconcile"
+  mirror: "abilities@3c8b682 plugins/agent-dev/skills/project-reconcile"
   version: "1.5.0"
   created: 2026-07-30
   author: add-project-management

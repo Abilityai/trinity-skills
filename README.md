@@ -15,13 +15,13 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 |---|---|---|---|
 | `add-git-sync` | 1.4 | mirrored · abilities | Add git-as-state hooks to an agent — auto-commits on Stop, rebases on SessionStart, snapshots on PreCompact |
 | `add-memory` | 1.1.1 | mirrored · abilities | Add a memory system to an agent — file awareness, knowledge graph, structured state, or multi-session tracking |
-| `add-pipeline` | 1.10 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
+| `add-pipeline` | 1.11 | mirrored · abilities | Scaffold a Trinity-compatible long-running pipeline inside any agent — creates projects/&lt;slug&gt;/{project.md, pipeline.yaml, instances/} |
 | `adjust-playbook` | 1.14.1 | mirrored · abilities | Modify an existing playbook based on conversation context or explicit instructions |
 | `agent-fleet-analysis` | 2.5 | mirrored · abilities | Scan one or more directories of agents in ANY paradigm — Claude Code, n8n workflow exports, framework apps (LangChain/CrewAI/AutoGen), or fr |
-| `agent-fleet-migrate` | 1.2 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
+| `agent-fleet-migrate` | 1.3 | mirrored · abilities | Build a verified Claude Code fleet from an agent-fleet-analysis work order — non-destructive migration of mixed fleets (Claude Code, n8n exp |
 | `apply-view` | 1.1 | library | The Trinity-native merge of a target-view proposal for installs without a git review flow (ruling 7) — validate the proposal against the tar |
 | `compile-view` | 1.1 | library | Compile a fleet's target view into a Trinity SystemManifest build artifact (build/<fleet>.system.yaml — Trinity's native format only, no inv |
-| `create-playbook` | 2.22 | mirrored · abilities | Create a new skill or playbook |
+| `create-playbook` | 2.23 | mirrored · abilities | Create a new skill or playbook |
 | `reconcile-fleet` | 1.2 | library | The Architect's scheduled tick — fetch the fleet's target view at a sha, observe the live fleet over Trinity MCP (agents, kinds, library ski |
 | `subscribe` | 1.2 | library | Connect a resident Architect (agent-builder on a customer instance, a Regent on the control plane) to the hosted Architect — print the exact |
 | `validate-pipeline` | 1.3 | mirrored · abilities | Lint a pipeline.yaml — schema check, DAG acyclicity, referenced-skill existence, precondition kind registration |
@@ -44,11 +44,12 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `close` | 1.0 | mirrored · abilities | Close the current issue without a git commit — adds summary comment and marks done |
 | `commit` | 1.1 | mirrored · abilities | Commit changed skill files and close the in-progress issue — writes a traceability commit message referencing the issue number |
 | `groom` | 1.0 | mirrored · abilities | Groom the backlog — tag untagged issues with skill:* labels, verify priorities, surface stale in-progress work |
-| `project-init` | 2.0.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37) — create a project on Trinity Projects with its kickoff kit (intent, charter wit |
+| `project-init` | 2.1.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37) — create a project on Trinity Projects with its kickoff kit (intent, charter wit |
 | `project-intake` | 2.0.0 | mirrored · abilities | Headless intake primitive |
+| `project-plan` | 2.0 | mirrored · abilities | Plan a managed project and keep the plan true per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
 | `project-reconcile` | 1.5.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28) there is no projection — the platform is a project's only home — so this skill says  |
 | `project-status` | 2.0 | mirrored · abilities | Status for ONE managed project |
-| `project-steward` | 2.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37), stewards a project in the platform only |
+| `project-steward` | 2.1 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37), stewards a project in the platform only |
 | `project-task` | 2.0.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37), creates a task in the platform project only — create_project_task with the §33  |
 | `propose-improvements` | 1.0 | library | The standard procedure by which an agent researches its market and its own record, then proposes improvements for a human or superior agent  |
 | `roadmap` | 1.0 | mirrored · abilities | Strategic view of the agent backlog — open issues grouped by skill, showing which areas have the most work |
@@ -80,6 +81,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 
 | Skill | Version | Origin | Description |
 |---|---|---|---|
+| `declare-schedules` | 1.1 | library | Reconcile this agent's repo template.yaml `schedules:` block against its live Trinity schedules so the repo declares exactly what runs - eve |
 | `self-diagnostic` | 1.0 | library | Run self-diagnostics on the agent to verify skills, commands, agents, and dependencies are working |
 | `skill-builder` | 1.0 | library | Expert guide for creating Claude Code skills |
 | `update-dashboard` | 1.1 | library | Refresh an agent's business metrics in one pass — compute every metric declared in template.yaml metrics:, refresh dashboard.yaml, and recor |

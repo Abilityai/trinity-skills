@@ -10,7 +10,7 @@ category: project-management
 requires:
   binaries: [git, gh]
 metadata:
-  mirror: "abilities@PENDING plugins/agent-dev/skills/project-status"
+  mirror: "abilities@3c8b682 plugins/agent-dev/skills/project-status"
   version: "2.0"
   created: 2026-10-02
   author: trinity-pm
