@@ -46,7 +46,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `groom` | 1.0 | mirrored · abilities | Groom the backlog — tag untagged issues with skill:* labels, verify priorities, surface stale in-progress work |
 | `project-init` | 2.1.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37) — create a project on Trinity Projects with its kickoff kit (intent, charter wit |
 | `project-intake` | 2.0.0 | mirrored · abilities | Headless intake primitive |
-| `project-plan` | 2.0 | mirrored · abilities | Plan a managed project and keep the plan true per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
+| `project-plan` | 2.1 | mirrored · abilities | Plan a managed project and keep the plan true per the project standard (PROJECT_STANDARD.md, or fleet/project-standard.md on an orchestrator |
 | `project-reconcile` | 1.5.0 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28) there is no projection — the platform is a project's only home — so this skill says  |
 | `project-status` | 2.0 | mirrored · abilities | Status for ONE managed project |
 | `project-steward` | 2.1 | mirrored · abilities | On a Trinity instance with Projects (standard 3.0, §28–§37), stewards a project in the platform only |
