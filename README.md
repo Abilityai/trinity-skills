@@ -76,6 +76,7 @@ Each skill is a directory under `skills/<name>/` with a `SKILL.md` carrying the 
 | `nano-banana-image-generator` | 1.1.1 | library | Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image) |
 | `one-pager` | 1.2.1 | library | Generate a brand-locked, information-dense single-page PDF that lets a reader understand an entire topic - a company, a product, a project,  |
 | `presentation` | 1.2.1 | library | Generate a brand-locked multi-slide presentation deck (16:9, 1920x1080) and assemble into a PDF |
+| `visual-answer` | 1.0 | library | The everyday habit of showing instead of telling |
 
 ### workspace
 

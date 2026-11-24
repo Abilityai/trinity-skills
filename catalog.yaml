@@ -23,6 +23,9 @@ providers:    # canonical env key per credential provider (rules in CONTRIBUTING
 sets:         # named slices of THIS source, assignable to an agent as one unit (trinity-enterprise#530)
   project-management:         # the project set — what a project's steward runs (project standard 3.1): plan, tasks, sweep, status
     skills: [project-init, project-plan, project-task, project-intake, project-steward, project-status, project-reconcile]
+  visual-communication:       # the visual set — for an agent that explains or presents to people: the everyday habit (visual-answer) plus the deliverable builders
+    skills: [visual-answer, explain-visually, create-explanatory-image, one-pager, presentation, microsite]
+    requires: {env: [GEMINI_API_KEY]}   # visual-answer needs no key; the builders use it for illustrations, and microsite's share link needs more (see its SKILL.md)
   architect:                  # the resident Architect's skill set — holds a fleet to its target view (schema + views: Abilityai/fleet-targets)
     skills: [reconcile-fleet, compile-view, apply-view, subscribe]
     requires: {env: [GITHUB_TOKEN]}
